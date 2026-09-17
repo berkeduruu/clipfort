@@ -1,7 +1,7 @@
 [package]
-name = "clipvault"
+name = "clipfort"
 version = "0.1.0"
-description = "ClipVault - Modern Linux Clipboard Manager & Secure Vault"
+description = "ClipFort - Lightweight Cross-Platform Clipboard Manager & Encrypted Vault for Windows & Linux"
 authors = ["you"]
 edition = "2021"
 

@@ -79,7 +79,7 @@
             ? '#ffffff'
             : (currentTheme ? currentTheme.textColor : '#64748b')};
         "
-        title="Hızlı seçim için {index + 1} tuşuna basın"
+        title="Press {index + 1} to select"
       >
         {index + 1}
       </span>
@@ -106,14 +106,14 @@
         <div class="relative w-24 h-16 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 flex-shrink-0 flex items-center justify-center">
           <img
             src={item.preview}
-            alt="Görsel önizleme"
+            alt="Preview"
             class="w-full h-full object-cover"
             loading="lazy"
           />
         </div>
         <div class="flex flex-col justify-center space-y-1 text-xs">
           <div class="font-medium flex items-center gap-1.5" style="color: {currentTheme ? currentTheme.textColor : '#334155'};">
-            <span>Görsel</span>
+            <span>Image</span>
             {#if item.image_width && item.image_height}
               <span class="font-normal" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#64748b'};">({item.image_width} × {item.image_height})</span>
             {/if}
@@ -148,7 +148,7 @@
               border-color: {currentTheme ? hexToRgba(currentTheme.borderColor, 80) : '#e2e8f0'};
               color: {currentTheme ? currentTheme.textColor : '#0f172a'};
             "
-            title="Canlı Renk Önizleme - Renk paletini açmak için tıklayın"
+            title="Live Color Preview - Click to open color palette"
           >
             <span
               class="w-3.5 h-3.5 rounded-full border border-black/20 shadow-inner flex-shrink-0 inline-block"
@@ -193,9 +193,9 @@
               background-color: {currentTheme ? hexToRgba(currentTheme.accentColor, 18) : '#e0e7ff'};
               color: {currentTheme ? currentTheme.accentColor : '#3730a3'};
             "
-            title="Tarayıcıda Aç ({urlInfo.url})"
+            title="Open in Browser ({urlInfo.url})"
           >
-            🌐 Aç
+            🌐 Open
           </button>
         </div>
       {/if}
@@ -205,11 +205,11 @@
         style="color: {currentTheme ? currentTheme.secondaryTextColor : '#64748b'};"
       >
         {#if item.char_count}
-          <span>{item.char_count} kr</span>
+          <span>{item.char_count} chars</span>
           <span>•</span>
         {/if}
         {#if item.word_count}
-          <span>{item.word_count} kelime</span>
+          <span>{item.word_count} words</span>
           <span>•</span>
         {/if}
         <span>{formatRelativeTime(item.timestamp)}</span>
@@ -224,7 +224,7 @@
       onclick={onMoveUp}
       class="p-1 hover:opacity-75 rounded-md transition-all"
       style="color: {currentTheme ? currentTheme.secondaryTextColor : '#64748b'};"
-      title="Yukarı taşı (Alt + Yukarı)"
+      title="Move up (Alt + Up)"
     >
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
@@ -236,7 +236,7 @@
       onclick={onMoveDown}
       class="p-1 hover:opacity-75 rounded-md transition-all"
       style="color: {currentTheme ? currentTheme.secondaryTextColor : '#64748b'};"
-      title="Aşağı taşı (Alt + Aşağı)"
+      title="Move down (Alt + Down)"
     >
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
@@ -248,7 +248,7 @@
       onclick={onTogglePin}
       class="p-1 rounded-md transition-all hover:opacity-75"
       style="color: {item.pinned ? '#f59e0b' : (currentTheme ? currentTheme.secondaryTextColor : '#64748b')};"
-      title={item.pinned ? 'Sabitlemeyi kaldır (P)' : 'Başa sabitle (P)'}
+      title={item.pinned ? 'Unpin (P)' : 'Pin to top (P)'}
     >
       <svg
         class="w-3.5 h-3.5"
@@ -270,7 +270,7 @@
       onclick={onDelete}
       class="p-1 hover:text-rose-500 rounded-md transition-all hover:opacity-75"
       style="color: {currentTheme ? currentTheme.secondaryTextColor : '#64748b'};"
-      title="Sil (Delete)"
+      title="Delete (Delete)"
     >
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

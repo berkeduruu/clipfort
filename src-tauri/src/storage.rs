@@ -164,10 +164,16 @@ pub type SharedStorage = Arc<StorageManager>;
 impl StorageManager {
     pub fn get_base_dir() -> PathBuf {
         let root = dirs::data_dir().unwrap_or_else(|| PathBuf::from("."));
-        let new_dir = root.join("clipvault");
-        let old_dir = root.join("clipboard-manager");
-        if !new_dir.exists() && old_dir.exists() {
-            let _ = fs::rename(&old_dir, &new_dir);
+        let new_dir = root.join("clipfort");
+        let old_dir1 = root.join("clipvault");
+        let old_dir2 = root.join("clipboard-manager");
+
+        if !new_dir.exists() {
+            if old_dir1.exists() {
+                let _ = fs::rename(&old_dir1, &new_dir);
+            } else if old_dir2.exists() {
+                let _ = fs::rename(&old_dir2, &new_dir);
+            }
         }
         if !new_dir.exists() {
             let _ = fs::create_dir_all(&new_dir);

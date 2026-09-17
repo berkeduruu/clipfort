@@ -1,9 +1,9 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "ClipVault",
-  "mainBinaryName": "clipvault",
+  "productName": "ClipFort",
+  "mainBinaryName": "clipfort",
   "version": "0.1.0",
-  "identifier": "com.clipvault.app",
+  "identifier": "com.clipfort.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
   "app": {
     "windows": [
       {
-        "title": "ClipVault",
+        "title": "ClipFort",
         "label": "main",
         "width": 640,
         "height": 560,

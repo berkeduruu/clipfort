@@ -2,18 +2,18 @@ export function formatRelativeTime(timestamp: number): string {
   const now = Date.now();
   const diffSec = Math.floor((now - timestamp) / 1000);
 
-  if (diffSec < 5) return 'Az önce';
-  if (diffSec < 60) return `${diffSec} sn önce`;
+  if (diffSec < 5) return 'Just now';
+  if (diffSec < 60) return `${diffSec}s ago`;
   const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `${diffMin} dk önce`;
+  if (diffMin < 60) return `${diffMin}m ago`;
   const diffHour = Math.floor(diffMin / 60);
-  if (diffHour < 24) return `${diffHour} sa önce`;
+  if (diffHour < 24) return `${diffHour}h ago`;
   const diffDay = Math.floor(diffHour / 24);
-  if (diffDay === 1) return 'Dün';
-  if (diffDay < 7) return `${diffDay} gün önce`;
+  if (diffDay === 1) return 'Yesterday';
+  if (diffDay < 7) return `${diffDay}d ago`;
   
   const d = new Date(timestamp);
-  return `${d.toLocaleDateString('tr-TR')} ${d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`;
+  return `${d.toLocaleDateString('en-US')} ${d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
 }
 
 export function formatBytes(bytes?: number): string {

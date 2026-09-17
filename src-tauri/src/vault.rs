@@ -21,17 +21,17 @@ fn default_item_type() -> String {
     "password".to_string()
 }
 fn default_tab() -> String {
-    "Kişisel Bilgiler".to_string()
+    "Personal Info".to_string()
 }
 fn default_group() -> String {
-    "Kişisel Veriler".to_string()
+    "Personal Data".to_string()
 }
 fn default_tabs() -> Vec<String> {
     vec![
-        "Kişisel Bilgiler".to_string(),
-        "Siteler & Kanallar".to_string(),
-        "Yazılım & Geliştirme".to_string(),
-        "Eğitim & Notlar".to_string(),
+        "Personal Info".to_string(),
+        "Websites & Accounts".to_string(),
+        "Development & Keys".to_string(),
+        "Notes & Documents".to_string(),
     ]
 }
 
@@ -121,11 +121,16 @@ pub type SharedVault = Arc<VaultManager>;
 impl VaultManager {
     pub fn new() -> Self {
         let root = dirs::data_dir().unwrap_or_else(|| PathBuf::from("."));
-        let base_dir = root.join("clipvault");
-        let old_dir = root.join("clipboard-manager");
+        let base_dir = root.join("clipfort");
+        let old_dir1 = root.join("clipvault");
+        let old_dir2 = root.join("clipboard-manager");
 
-        if !base_dir.exists() && old_dir.exists() {
-            let _ = fs::rename(&old_dir, &base_dir);
+        if !base_dir.exists() {
+            if old_dir1.exists() {
+                let _ = fs::rename(&old_dir1, &base_dir);
+            } else if old_dir2.exists() {
+                let _ = fs::rename(&old_dir2, &base_dir);
+            }
         }
 
         if !base_dir.exists() {

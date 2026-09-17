@@ -100,7 +100,7 @@
   let groupedSections = $derived.by(() => {
     const map = new Map<string, VaultItem[]>();
     for (const item of tabItems) {
-      const g = item.group || 'Genel';
+      const g = item.group || 'General';
       if (!map.has(g)) map.set(g, []);
       map.get(g)!.push(item);
     }
@@ -136,14 +136,14 @@
         items = await invoke<VaultItem[]>('get_vault_items');
         tabs = await invoke<string[]>('get_vault_tabs');
         if (!activeTab || !tabs.includes(activeTab)) {
-          activeTab = tabs[0] || 'Kişisel Bilgiler';
+          activeTab = tabs[0] || 'Personal Info';
         }
       } else {
         items = [];
         tabs = [];
       }
     } catch (err: any) {
-      errorMessage = typeof err === 'string' ? err : 'Kasa durumu alınamadı';
+      errorMessage = typeof err === 'string' ? err : 'Failed to fetch vault status';
     } finally {
       isLoading = false;
     }
@@ -155,18 +155,18 @@
       await invoke('init_vault', { pin: null });
       await refreshStatus();
     } catch (err: any) {
-      errorMessage = typeof err === 'string' ? err : 'Kasa oluşturulamadı.';
+      errorMessage = typeof err === 'string' ? err : 'Failed to create vault.';
     }
   }
 
   async function handleInitPinVault() {
     errorMessage = '';
     if (pinInput.trim().length < 4) {
-      errorMessage = 'PIN kodu en az 4 karakter olmalıdır.';
+      errorMessage = 'PIN code must be at least 4 characters.';
       return;
     }
     if (pinInput !== confirmPinInput) {
-      errorMessage = 'Girilen PIN kodları birbiriyle uyuşmuyor!';
+      errorMessage = 'Entered PIN codes do not match!';
       return;
     }
 
@@ -176,18 +176,18 @@
       confirmPinInput = '';
       await refreshStatus();
     } catch (err: any) {
-      errorMessage = typeof err === 'string' ? err : 'Kasa oluşturulamadı.';
+      errorMessage = typeof err === 'string' ? err : 'Failed to create vault.';
     }
   }
 
   async function handleSetPin() {
     pinModalError = '';
     if (newPin.trim().length < 4) {
-      pinModalError = 'PIN kodu en az 4 karakter olmalıdır.';
+      pinModalError = 'PIN code must be at least 4 characters.';
       return;
     }
     if (newPin !== confirmNewPin) {
-      pinModalError = 'Girilen PIN kodları uyuşmuyor!';
+      pinModalError = 'Entered PIN codes do not match!';
       return;
     }
 
@@ -196,11 +196,11 @@
       newPin = '';
       confirmNewPin = '';
       isPinModalOpen = false;
-      successMessage = 'PIN koruması başarıyla etkinleştirildi.';
+      successMessage = 'PIN protection enabled successfully.';
       setTimeout(() => { successMessage = ''; }, 3000);
       await refreshStatus();
     } catch (err: any) {
-      pinModalError = typeof err === 'string' ? err : 'PIN ayarlanamadı.';
+      pinModalError = typeof err === 'string' ? err : 'Failed to set PIN.';
     }
   }
 
@@ -208,18 +208,18 @@
     try {
       await invoke('remove_vault_pin');
       isRemovePinConfirmOpen = false;
-      successMessage = 'PIN koruması kaldırıldı. Kasa artık otomatik cihaz şifrelemesiyle açılacak.';
+      successMessage = 'PIN protection removed. Vault will now open with automatic device encryption.';
       setTimeout(() => { successMessage = ''; }, 3500);
       await refreshStatus();
     } catch (err: any) {
-      alert(typeof err === 'string' ? err : 'PIN kaldırılamadı.');
+      alert(typeof err === 'string' ? err : 'Failed to remove PIN.');
     }
   }
 
   async function handleUnlockVault() {
     errorMessage = '';
     if (!pinInput.trim()) {
-      errorMessage = 'Lütfen PIN kodunuzu girin.';
+      errorMessage = 'Please enter your PIN code.';
       return;
     }
 
@@ -228,7 +228,7 @@
       pinInput = '';
       await refreshStatus();
     } catch (err: any) {
-      errorMessage = typeof err === 'string' ? err : 'Hatalı PIN kodu! Kasa açılamadı.';
+      errorMessage = typeof err === 'string' ? err : 'Incorrect PIN code! Failed to unlock vault.';
     }
   }
 
@@ -251,16 +251,16 @@
       newTabName = '';
       isAddTabModalOpen = false;
     } catch (err: any) {
-      alert(typeof err === 'string' ? err : 'Sekme eklenemedi');
+      alert(typeof err === 'string' ? err : 'Failed to add tab');
     }
   }
 
   async function handleDeleteTab(tabName: string) {
     if (tabs.length <= 1) {
-      alert('En az bir sekme bulunmalıdır.');
+      alert('At least one tab must remain.');
       return;
     }
-    if (!confirm(`"${tabName}" sekmesini ve bu sekmedeki görünümü silmek istediğinize emin misiniz?`)) {
+    if (!confirm(`Are you sure you want to delete the "${tabName}" tab and its contents?`)) {
       return;
     }
     try {
@@ -269,7 +269,7 @@
         activeTab = tabs[0];
       }
     } catch (err: any) {
-      alert(typeof err === 'string' ? err : 'Sekme silinemedi');
+      alert(typeof err === 'string' ? err : 'Failed to delete tab');
     }
   }
 
@@ -282,13 +282,13 @@
     }
   }
 
-  function openAddModal(defaultGroup = 'Kişisel Veriler') {
+  function openAddModal(defaultGroup = 'Personal Data') {
     isEditingExisting = false;
     currentEditId = null;
     formTitle = '';
     formSecret = '';
     formItemType = 'text';
-    formTab = activeTab || (tabs[0] || 'Kişisel Bilgiler');
+    formTab = activeTab || (tabs[0] || 'Personal Info');
     formGroup = defaultGroup;
     formPinned = false;
     formNotes = '';
@@ -312,7 +312,7 @@
     formSecret = item.secret;
     formItemType = (item.item_type as any) || 'text';
     formTab = item.tab || activeTab;
-    formGroup = item.group || 'Genel';
+    formGroup = item.group || 'General';
     formPinned = item.pinned;
     formNotes = item.notes || '';
     formFileName = item.file_name || null;
@@ -332,7 +332,7 @@
       if (picked) {
         const maxBytes = (settings.max_vault_file_size_mb || 20) * 1024 * 1024;
         if (picked.size_bytes > maxBytes) {
-          fileError = `Dosya boyutu ${settings.max_vault_file_size_mb || 20} MB sınırını aşıyor! (${(picked.size_bytes / 1048576).toFixed(1)} MB)`;
+          fileError = `File size exceeds ${settings.max_vault_file_size_mb || 20} MB limit! (${(picked.size_bytes / 1048576).toFixed(1)} MB)`;
           return;
         }
         formFileName = picked.name;
@@ -344,7 +344,7 @@
         }
       }
     } catch (err: any) {
-      fileError = typeof err === 'string' ? err : 'Dosya seçici açılamadı.';
+      fileError = typeof err === 'string' ? err : 'Failed to open file picker.';
     }
   }
 
@@ -356,7 +356,7 @@
 
     const maxBytes = (settings.max_vault_file_size_mb || 20) * 1024 * 1024;
     if (file.size > maxBytes) {
-      fileError = `Dosya boyutu ${settings.max_vault_file_size_mb || 20} MB sınırını aşıyor! (${(file.size / 1048576).toFixed(1)} MB)`;
+      fileError = `File size exceeds ${settings.max_vault_file_size_mb || 20} MB limit! (${(file.size / 1048576).toFixed(1)} MB)`;
       input.value = '';
       return;
     }
@@ -376,22 +376,22 @@
       formFileBase64 = base64;
     };
     reader.onerror = () => {
-      fileError = 'Dosya okunamadı.';
+      fileError = 'Failed to read file.';
     };
     reader.readAsDataURL(file);
   }
 
   async function handleSaveItem() {
     if (!formTitle.trim()) {
-      errorMessage = 'Lütfen bir başlık girin.';
+      errorMessage = 'Please enter a title.';
       return;
     }
     if (formItemType !== 'file' && !formSecret.trim()) {
-      errorMessage = 'Lütfen gizli bilgiyi / değeri girin.';
+      errorMessage = 'Please enter the secret / value.';
       return;
     }
     if (formItemType === 'file' && !formFileName && !formFilePath && !isEditingExisting) {
-      errorMessage = 'Lütfen bir dosya seçin.';
+      errorMessage = 'Please select a file.';
       return;
     }
 
@@ -402,7 +402,7 @@
         secret: formSecret.trim(),
         itemType: formItemType,
         tab: formTab || activeTab,
-        group: formGroup.trim() || 'Genel',
+        group: formGroup.trim() || 'General',
         pinned: formPinned,
         fileName: formFileName,
         fileBase64: formFileBase64,
@@ -413,17 +413,17 @@
       isEditModalOpen = false;
       await refreshStatus();
     } catch (err: any) {
-      errorMessage = typeof err === 'string' ? err : 'Öğe kaydedilemedi.';
+      errorMessage = typeof err === 'string' ? err : 'Failed to save item.';
     }
   }
 
   async function handleDeleteItem(id: string) {
-    if (!confirm('Bu kaydı kalıcı olarak silmek istediğinize emin misiniz?')) return;
+    if (!confirm('Are you sure you want to permanently delete this item?')) return;
     try {
       await invoke('delete_vault_item', { id });
       await refreshStatus();
     } catch (err: any) {
-      alert(typeof err === 'string' ? err : 'Öğe silinemedi.');
+      alert(typeof err === 'string' ? err : 'Failed to delete item.');
     }
   }
 
@@ -447,7 +447,7 @@
         onCloseWindow();
       }
     } catch (err: any) {
-      alert(typeof err === 'string' ? err : 'Kopyalama başarısız');
+      alert(typeof err === 'string' ? err : 'Copy failed');
     }
   }
 
@@ -455,7 +455,7 @@
     try {
       await invoke('copy_vault_file', { id: item.id });
       copiedId = item.id;
-      successMessage = `"${item.title || item.file_name || 'Belge'}" panoya kopyalandı.`;
+      successMessage = `"${item.title || item.file_name || 'Document'}" copied to clipboard.`;
       setTimeout(() => {
         if (copiedId === item.id) copiedId = null;
       }, 1500);
@@ -467,19 +467,19 @@
         onCloseWindow();
       }
     } catch (err: any) {
-      alert(typeof err === 'string' ? err : 'Dosya panoya kopyalanamadı');
+      alert(typeof err === 'string' ? err : 'Failed to copy file to clipboard');
     }
   }
 
   async function handleExportFile(item: VaultItem) {
     try {
       const savedPath = await invoke<string>('export_vault_file', { id: item.id });
-      successMessage = `"${item.file_name || item.title}" İndirilenler klasörüne kaydedildi: ${savedPath}`;
+      successMessage = `"${item.file_name || item.title}" saved to Downloads: ${savedPath}`;
       setTimeout(() => {
         successMessage = '';
       }, 4000);
     } catch (err: any) {
-      alert(typeof err === 'string' ? err : 'Dosya dışa aktarılamadı');
+      alert(typeof err === 'string' ? err : 'Failed to export file');
     }
   }
 
@@ -487,7 +487,7 @@
     try {
       await invoke('open_vault_file', { id: item.id });
     } catch (err: any) {
-      alert(typeof err === 'string' ? err : 'Dosya açılamadı');
+      alert(typeof err === 'string' ? err : 'Failed to open file');
     }
   }
 
@@ -515,7 +515,7 @@
     try {
       await invoke('open_external_url', { url });
     } catch (err: any) {
-      alert(typeof err === 'string' ? err : 'Bağlantı açılamadı');
+      alert(typeof err === 'string' ? err : 'Failed to open link');
     }
   }
 
@@ -531,13 +531,13 @@
     backupErrorMessage = '';
     try {
       const savedPath = await invoke<string>('export_vault_backup');
-      backupStatusMessage = `Kasa yedeği başarıyla kaydedildi:\n${savedPath}`;
-      successMessage = 'Kasa yedeği başarıyla oluşturuldu.';
+      backupStatusMessage = `Vault backup saved successfully:\n${savedPath}`;
+      successMessage = 'Vault backup created successfully.';
       setTimeout(() => {
-        if (successMessage.includes('Kasa yedeği')) successMessage = '';
+        if (successMessage.includes('Vault backup')) successMessage = '';
       }, 4000);
     } catch (err: any) {
-      backupErrorMessage = typeof err === 'string' ? err : 'Yedekleme başarısız';
+      backupErrorMessage = typeof err === 'string' ? err : 'Backup failed';
     } finally {
       isBackingUp = false;
     }
@@ -550,13 +550,13 @@
     try {
       await invoke('restore_vault_backup');
       isBackupModalOpen = false;
-      successMessage = 'Kasa yedeği başarıyla geri yüklendi!';
+      successMessage = 'Vault backup restored successfully!';
       await refreshStatus();
       setTimeout(() => {
-        if (successMessage.includes('geri yüklendi')) successMessage = '';
+        if (successMessage.includes('restored')) successMessage = '';
       }, 4000);
     } catch (err: any) {
-      backupErrorMessage = typeof err === 'string' ? err : 'Geri yükleme başarısız';
+      backupErrorMessage = typeof err === 'string' ? err : 'Restore failed';
     } finally {
       isBackingUp = false;
     }
@@ -588,9 +588,9 @@
         </svg>
       </div>
 
-      <h2 class="text-base font-semibold" style="color: {currentTheme ? currentTheme.textColor : '#ffffff'};">Güvenli Kasa Kurulumu</h2>
+      <h2 class="text-base font-semibold" style="color: {currentTheme ? currentTheme.textColor : '#ffffff'};">Secure Vault Setup</h2>
       <p class="text-xs mt-1 mb-3.5 leading-relaxed" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">
-        Şifreleriniz ve dosyalarınız <strong>AES-256-GCM</strong> ile şifrelenir. Başlamak için tercihinizi seçin:
+        Your passwords and files are protected with <strong>AES-256-GCM</strong> encryption. Choose your preferred startup mode:
       </p>
 
       {#if errorMessage}
@@ -610,7 +610,7 @@
         >
           <div class="flex items-center justify-between mb-1">
             <span class="text-xs font-semibold flex items-center gap-1.5" style="color: {currentTheme ? currentTheme.accentColor : '#fde68a'};">
-              <span>🛡️</span> Otomatik Cihaz Şifrelemesi
+              <span>🛡️</span> Automatic Device Encryption
             </span>
             <span
               class="px-1.5 py-0.5 text-[10px] rounded font-medium"
@@ -620,11 +620,11 @@
                 border: 1px solid {currentTheme ? hexToRgba(currentTheme.accentColor, 30) : 'rgba(245, 158, 11, 0.3)'};
               "
             >
-              Önerilen
+              Recommended
             </span>
           </div>
           <p class="text-[11px] leading-snug" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">
-            PIN kodu girmeden anında açılır. Verileriniz disk üzerinde cihaza özel 256-bit AES anahtarı ile şifrelenir.
+            Opens instantly without asking for a PIN. Data is encrypted on disk with a machine-bound 256-bit AES key.
           </p>
           <button
             onclick={handleInitAutoVault}
@@ -634,14 +634,14 @@
               color: #ffffff;
             "
           >
-            <span>🚀 Hemen Başla (PIN'siz / Otomatik)</span>
+            <span>🚀 Start Instantly (No PIN / Automatic)</span>
           </button>
         </div>
 
         <!-- Divider -->
         <div class="flex items-center gap-2 text-[11px] px-1 py-0.5" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#64748b'};">
           <div class="flex-1 h-px" style="background-color: {currentTheme ? hexToRgba(currentTheme.borderColor, 40) : '#334155'};"></div>
-          <span>veya</span>
+          <span>or</span>
           <div class="flex-1 h-px" style="background-color: {currentTheme ? hexToRgba(currentTheme.borderColor, 40) : '#334155'};"></div>
         </div>
 
@@ -654,17 +654,17 @@
           "
         >
           <span class="text-xs font-semibold flex items-center gap-1.5 mb-1" style="color: {currentTheme ? currentTheme.textColor : '#f1f5f9'};">
-            <span>🔒</span> PIN Koruması Belirle (İsteğe Bağlı)
+            <span>🔒</span> Set Master PIN Protection (Optional)
           </span>
           <p class="text-[11px] mb-2" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">
-            Her oturumda kasanın kilidini açmak için bir anahtar PIN kodu istenir.
+            Requires a master PIN code to unlock the vault each session.
           </p>
 
           <div class="space-y-2">
             <input
               type="password"
               bind:value={pinInput}
-              placeholder="Anahtar PIN Belirleyin (en az 4 hane)"
+              placeholder="Create Master PIN (at least 4 digits)"
               class="w-full px-3 py-1.5 text-xs rounded-lg focus:outline-none"
               style="
                 background-color: {currentTheme ? hexToRgba(currentTheme.bgColor, 90) : '#0f172a'};
@@ -676,7 +676,7 @@
             <input
               type="password"
               bind:value={confirmPinInput}
-              placeholder="PIN Kodunu Doğrulayın"
+              placeholder="Confirm Master PIN"
               class="w-full px-3 py-1.5 text-xs rounded-lg focus:outline-none"
               style="
                 background-color: {currentTheme ? hexToRgba(currentTheme.bgColor, 90) : '#0f172a'};
@@ -694,7 +694,7 @@
                 color: #ffffff;
               "
             >
-              PIN ile Koru ve Başlat
+              Protect with PIN & Start
             </button>
           </div>
         </div>
@@ -717,9 +717,9 @@
         </svg>
       </div>
 
-      <h2 class="text-base font-semibold" style="color: {currentTheme ? currentTheme.textColor : '#ffffff'};">Kasa Kilitli</h2>
+      <h2 class="text-base font-semibold" style="color: {currentTheme ? currentTheme.textColor : '#ffffff'};">Vault Locked</h2>
       <p class="text-xs mt-1 mb-4" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">
-        Bu oturum için anahtar PIN kodunuzu girin. Bilgisayar açık kaldığı sürece kasanız açık kalır.
+        Enter your master PIN code for this session. The vault stays unlocked until closed.
       </p>
 
       {#if errorMessage}
@@ -733,7 +733,7 @@
           id="vault-unlock-pin"
           type="password"
           bind:value={pinInput}
-          placeholder="PIN Kodunu Girin..."
+          placeholder="Enter Master PIN..."
           class="w-full px-3.5 py-2 text-sm rounded-xl shadow-sm text-center tracking-widest font-mono text-base focus:outline-none"
           style="
             background-color: {currentTheme ? hexToRgba(currentTheme.cardColor, 90) : 'rgba(30, 41, 59, 0.9)'};
@@ -751,7 +751,7 @@
             color: #ffffff;
           "
         >
-          Kilidi Aç
+          Unlock Vault
         </button>
       </div>
     </div>
@@ -788,7 +788,7 @@
                 color: {currentTheme ? currentTheme.textColor : '#fde68a'};
                 border: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 80) : 'rgba(245, 158, 11, 0.4)'};
               "
-              title={item.item_type === 'file' ? 'Belgeyi panoya kopyalamak için tıkla' : 'Kopyalamak için tıkla'}
+              title={item.item_type === 'file' ? 'Click to copy document to clipboard' : 'Click to copy'}
             >
               <svg class="w-3 h-3 shrink-0" style="color: {currentTheme ? currentTheme.accentColor : '#fbbf24'};" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d={getItemIcon(item)} />
@@ -802,12 +802,12 @@
         </div>
 
         <div class="flex items-center space-x-2 text-[11px] shrink-0 pl-2" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#fbbf24'};">
-          <span class="font-semibold">{pinnedItems.length} Sabitlendi</span>
+          <span class="font-semibold">{pinnedItems.length} Pinned</span>
         </div>
       </div>
     {/if}
 
-    <!-- 1. KATEGORİ / KONU BARLARI (User Diagram Kutu 1) -->
+    <!-- 1. CATEGORY / TAB BAR -->
     <div
       class="px-3 py-1 flex items-center gap-1.5 select-none"
       style="
@@ -849,7 +849,7 @@
               <button
                 onclick={(e) => { e.stopPropagation(); handleDeleteTab(tabName); }}
                 class="hidden group-hover:flex absolute -top-1 -right-1 w-4 h-4 bg-rose-600 hover:bg-rose-500 text-white rounded-full items-center justify-center shadow-md cursor-pointer transition-transform hover:scale-110 z-10"
-                title="Sekmeyi Sil"
+                title="Delete Tab"
               >
                 <svg class="w-2.5 h-2.5 text-white pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -872,7 +872,7 @@
           onclick={() => scrollTabs('left')}
           class="w-6 h-6 flex items-center justify-center rounded text-xs transition-colors cursor-pointer hover:opacity-80"
           style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};"
-          title="Sola Kaydır"
+          title="Scroll Left"
         >
           ‹
         </button>
@@ -880,13 +880,13 @@
           onclick={() => scrollTabs('right')}
           class="w-6 h-6 flex items-center justify-center rounded text-xs transition-colors cursor-pointer hover:opacity-80"
           style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};"
-          title="Sağa Kaydır"
+          title="Scroll Right"
         >
           ›
         </button>
       </div>
 
-      <!-- Always visible + Yeni Konu Button -->
+      <!-- Always visible + New Tab Button -->
       <button
         onclick={() => (isAddTabModalOpen = true)}
         class="shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer hover:opacity-90 shadow-xs"
@@ -895,14 +895,14 @@
           color: {currentTheme ? currentTheme.accentColor : '#fbbf24'};
           border: 1px solid {currentTheme ? hexToRgba(currentTheme.accentColor, 40) : 'rgba(245, 158, 11, 0.3)'};
         "
-        title="Yeni Kategori / Konu Ekle"
+        title="Add New Category / Tab"
       >
         <span class="text-sm font-black leading-none">+</span>
-        <span class="text-[11px] font-medium">Yeni</span>
+        <span class="text-[11px] font-medium">New</span>
       </button>
     </div>
 
-    <!-- 2. SEARCH BAR & İŞLEM BUTONLARI (User Diagram Kutu 2) -->
+    <!-- 2. SEARCH BAR & ACTION BUTTONS -->
     <div
       class="px-4 py-2 flex items-center justify-between gap-3 select-none"
       style="
@@ -918,7 +918,7 @@
         <input
           type="text"
           bind:value={searchQuery}
-          placeholder="Kasada ara... (şifre veya başlık)"
+          placeholder="Search in vault... (secret or title)"
           class="w-full pl-9 pr-7 py-1.5 text-xs rounded-xl focus:outline-none transition-all duration-150 shadow-xs"
           style="
             background-color: {currentTheme ? hexToRgba(currentTheme.cardColor, 90) : 'rgba(30, 41, 59, 0.9)'};
@@ -931,7 +931,7 @@
             onclick={() => (searchQuery = '')}
             class="absolute right-2 text-xs cursor-pointer p-0.5 hover:opacity-80"
             style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};"
-            title="Aramayı Temizle"
+            title="Clear Search"
           >
             ✕
           </button>
@@ -940,7 +940,7 @@
 
       <!-- Action Buttons -->
       <div class="flex items-center space-x-1.5 shrink-0">
-        <!-- + Ekle Button -->
+        <!-- + Add Button -->
         <button
           onclick={() => openAddModal()}
           class="px-3 py-1.5 font-bold rounded-xl text-xs flex items-center space-x-1 shadow-sm transition-all active:scale-95 whitespace-nowrap cursor-pointer shrink-0"
@@ -948,12 +948,12 @@
             background-color: {currentTheme ? currentTheme.accentColor : '#f59e0b'};
             color: #ffffff;
           "
-          title="Yeni Bilgi / Dosya Ekle"
+          title="Add New Item / File"
         >
           <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
           </svg>
-          <span>Ekle</span>
+          <span>Add</span>
         </button>
 
         <!-- Encryption Mode Quick Toggle (🛡️) -->
@@ -966,7 +966,7 @@
               border: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 70) : 'rgba(245, 158, 11, 0.4)'};
               color: {currentTheme ? currentTheme.accentColor : '#fbbf24'};
             "
-            title="PIN korumalı kasa. Otomatik şifrelemeye geçmek için tıklayın."
+            title="PIN-protected vault. Click to switch to automatic device encryption."
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -982,7 +982,7 @@
               border: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 70) : 'rgba(51, 65, 85, 0.8)'};
               color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};
             "
-            title="Otomatik cihaz şifreli. İsteğe bağlı PIN koruması eklemek için tıklayın."
+            title="Automatic device encryption. Click to add optional PIN protection."
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -999,7 +999,7 @@
             border: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 70) : 'rgba(51, 65, 85, 0.8)'};
             color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};
           "
-          title="Kasa Dosyası ve Taşınabilirlik"
+          title="Vault Storage & Portability"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
@@ -1015,7 +1015,7 @@
             border: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 70) : 'rgba(51, 65, 85, 0.8)'};
             color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};
           "
-          title="Kasa Tam Yedekleme & Geri Yükleme (.vaultbak)"
+          title="Full Vault Backup & Restore (.vaultbak)"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
@@ -1031,7 +1031,7 @@
             border: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 70) : 'rgba(51, 65, 85, 0.8)'};
             color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};
           "
-          title="Kasayı Kilitle"
+          title="Lock Vault"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -1047,9 +1047,9 @@
           <svg class="w-10 h-10 mb-2" style="color: {currentTheme ? hexToRgba(currentTheme.secondaryTextColor, 40) : '#475569'};" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
           </svg>
-          <p class="text-sm font-medium" style="color: {currentTheme ? currentTheme.textColor : '#cbd5e1'};">Bu sekmede henüz kayıt yok</p>
+          <p class="text-sm font-medium" style="color: {currentTheme ? currentTheme.textColor : '#cbd5e1'};">No records in this tab yet</p>
           <p class="text-xs mt-1" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#64748b'};">
-            Yukarıdaki "+ Ekle" butonunu kullanarak şifreler, kimlikler veya {settings.max_vault_file_size_mb || 20}MB'a kadar belgeler ekleyebilirsiniz.
+            Use the "+ Add" button above to store passwords, credentials, notes, or documents up to {settings.max_vault_file_size_mb || 20} MB.
           </p>
         </div>
       {:else}
@@ -1074,9 +1074,9 @@
                     onclick={() => openAddModal(section.groupName)}
                     class="text-[11px] px-1.5 py-0.5 rounded transition-colors cursor-pointer hover:opacity-80"
                     style="color: {currentTheme ? currentTheme.accentColor : '#fbbf24'};"
-                    title="Bu gruba yeni ekle"
+                    title="Add new to this group"
                   >
-                    + Ekle
+                    + Add
                   </button>
                 </div>
 
@@ -1092,7 +1092,7 @@
                           color: {currentTheme ? currentTheme.textColor : '#f1f5f9'};
                           border: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 75) : '#334155'};
                         "
-                        title={item.item_type === 'file' ? 'Belgeyi panoya kopyalamak için tıkla' : 'Kopyalamak için tıkla'}
+                        title={item.item_type === 'file' ? 'Click to copy document to clipboard' : 'Click to copy'}
                       >
                         <!-- Icon -->
                         <svg class="w-3.5 h-3.5 shrink-0" style="color: {currentTheme ? currentTheme.accentColor : '#fbbf24'};" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -1139,7 +1139,7 @@
                             onclick={(e) => { e.stopPropagation(); handleOpenFile(item); }}
                             class="p-0.5 rounded cursor-pointer hover:text-amber-400"
                             style="color: {currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1'};"
-                            title="Varsayılan Uygulama ile Aç"
+                            title="Open with Default App"
                           >
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -1150,7 +1150,7 @@
                             onclick={(e) => { e.stopPropagation(); handleExportFile(item); }}
                             class="p-0.5 rounded cursor-pointer hover:text-emerald-400"
                             style="color: {currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1'};"
-                            title="İndirilenler Klasörüne Kaydet"
+                            title="Save to Downloads"
                           >
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -1162,7 +1162,7 @@
                             onclick={(e) => { e.stopPropagation(); handleOpenUrl(item.secret || item.title); }}
                             class="p-0.5 rounded cursor-pointer hover:text-sky-400"
                             style="color: {currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1'};"
-                            title="Tarayıcıda Aç"
+                            title="Open in Browser"
                           >
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -1173,7 +1173,7 @@
                           onclick={(e) => { e.stopPropagation(); handleTogglePin(item.id); }}
                           class="p-0.5 rounded cursor-pointer hover:opacity-80"
                           style="color: {currentTheme ? (item.pinned ? currentTheme.accentColor : currentTheme.secondaryTextColor) : '#cbd5e1'};"
-                          title={item.pinned ? 'Sabitlemeyi Kaldır' : 'Başa Sabitle'}
+                          title={item.pinned ? 'Unpin' : 'Pin to Top'}
                         >
                           <svg class="w-3 h-3" fill={item.pinned ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
@@ -1183,7 +1183,7 @@
                           onclick={(e) => { e.stopPropagation(); openEditModal(item); }}
                           class="p-0.5 rounded cursor-pointer hover:text-blue-400"
                           style="color: {currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1'};"
-                          title="Düzenle"
+                          title="Edit"
                         >
                           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -1193,7 +1193,7 @@
                           onclick={(e) => { e.stopPropagation(); handleDeleteItem(item.id); }}
                           class="p-0.5 rounded cursor-pointer hover:text-rose-400"
                           style="color: {currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1'};"
-                          title="Sil"
+                          title="Delete"
                         >
                           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -1226,14 +1226,14 @@
     >
       <div class="flex items-center justify-between pb-1.5 shrink-0" style="border-bottom: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 70) : '#1e293b'};">
         <h3 class="text-sm font-semibold" style="color: {currentTheme ? currentTheme.textColor : '#ffffff'};">
-          {isEditingExisting ? 'Kaydı Düzenle' : 'Yeni Bilgi / Dosya Ekle'}
+          {isEditingExisting ? 'Edit Item' : 'Add New Item / File'}
         </h3>
         <button
           onclick={() => (isEditModalOpen = false)}
           class="p-1 cursor-pointer hover:opacity-80 rounded-lg"
           style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};"
-          title="Kapat"
-          aria-label="Kapat"
+          title="Close"
+          aria-label="Close"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -1248,9 +1248,9 @@
       {/if}
 
       <div class="space-y-2 text-xs overflow-y-auto flex-1 min-h-0 pr-1 py-1.5">
-        <!-- Kayıt Türü: Segmented Pills -->
+        <!-- Item Type: Segmented Pills -->
         <div>
-          <span class="block mb-1 font-medium" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">Kayıt Türü</span>
+          <span class="block mb-1 font-medium" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">Item Type</span>
           <div
             class="grid grid-cols-5 gap-1 p-1 rounded-xl"
             style="
@@ -1268,7 +1268,7 @@
               "
             >
               <span>📄</span>
-              <span>Metin</span>
+              <span>Text</span>
             </button>
             <button
               type="button"
@@ -1280,7 +1280,7 @@
               "
             >
               <span>🔒</span>
-              <span>Şifre</span>
+              <span>Password</span>
             </button>
             <button
               type="button"
@@ -1292,7 +1292,7 @@
               "
             >
               <span>📎</span>
-              <span>Dosya</span>
+              <span>File</span>
             </button>
             <button
               type="button"
@@ -1304,7 +1304,7 @@
               "
             >
               <span>📝</span>
-              <span>Not</span>
+              <span>Note</span>
             </button>
             <button
               type="button"
@@ -1324,7 +1324,7 @@
         <!-- Tab & Group Row -->
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label for="form-tab-select" class="block mb-0.5 font-medium" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">Sekme / Pano</label>
+            <label for="form-tab-select" class="block mb-0.5 font-medium" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">Tab / Board</label>
             <div class="relative">
               <select
                 id="form-tab-select"
@@ -1349,7 +1349,7 @@
           </div>
 
           <div>
-            <label for="form-group-input" class="block mb-0.5 font-medium" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">Grup / Kutu Adı</label>
+            <label for="form-group-input" class="block mb-0.5 font-medium" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">Group / Box Name</label>
             <input
               id="form-group-input"
               type="text"
@@ -1359,7 +1359,7 @@
                 color: {currentTheme ? currentTheme.textColor : '#f8fafc'} !important;
                 border: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 75) : '#334155'};
               "
-              placeholder="Örn: Kişisel Bilgiler, Belgeler"
+              placeholder="e.g. Personal Info, Documents, Work"
               class="w-full px-2.5 py-1.5 rounded-xl focus:outline-none text-xs shadow-inner"
             />
           </div>
@@ -1367,7 +1367,7 @@
 
         <!-- Title Row -->
         <div>
-          <label for="vault-form-title" class="block mb-0.5 font-medium" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">Başlık / Tanım</label>
+          <label for="vault-form-title" class="block mb-0.5 font-medium" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">Title / Description</label>
           <input
             id="vault-form-title"
             type="text"
@@ -1377,7 +1377,7 @@
               color: {currentTheme ? currentTheme.textColor : '#f8fafc'} !important;
               border: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 75) : '#334155'};
             "
-            placeholder="Örn: First and Last Name, Kimlik Tarama, Wi-Fi"
+            placeholder="e.g. Full Name, ID Scan, Wi-Fi Password"
             class="w-full px-2.5 py-1.5 rounded-xl focus:outline-none text-xs shadow-inner"
           />
         </div>
@@ -1395,7 +1395,7 @@
               <!-- Native File Picker Button (when no file chosen yet) -->
               <div class="flex items-center justify-between">
                 <span class="block font-medium text-xs" style="color: {currentTheme ? currentTheme.textColor : '#cbd5e1'};">
-                  Belge / Dosya Seçimi (Maks. {settings.max_vault_file_size_mb || 20} MB):
+                  Document / File Selection (Max {settings.max_vault_file_size_mb || 20} MB):
                 </span>
               </div>
 
@@ -1412,7 +1412,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                 </svg>
-                <span>📁 Sistemden Dosya Seç...</span>
+                <span>📁 Select File from System...</span>
               </button>
             {:else}
               <!-- Compact Selected File Header with Change Button -->
@@ -1428,7 +1428,7 @@
                     <span class="text-sm shrink-0">📎</span>
                     <div class="min-w-0 flex-1">
                       <div class="font-semibold font-mono truncate text-xs" style="color: {currentTheme ? currentTheme.accentColor : '#fbbf24'};" title={formFileName || ''}>
-                        {formFileName || 'Seçilen Dosya'}
+                        {formFileName || 'Selected File'}
                       </div>
                       <div class="text-[10px] opacity-75">
                         {formatBytes(formFileSizeBytes ?? undefined)}
@@ -1444,9 +1444,9 @@
                       color: {currentTheme ? currentTheme.accentColor : '#fbbf24'};
                       background-color: {currentTheme ? hexToRgba(currentTheme.accentColor, 15) : 'rgba(245, 158, 11, 0.15)'};
                     "
-                    title="Farklı bir dosya seç"
+                    title="Select a different file"
                   >
-                    <span>🔄 Değiştir</span>
+                    <span>🔄 Change</span>
                   </button>
                 </div>
 
@@ -1458,7 +1458,7 @@
 
                 <!-- Storage Mode Selector -->
                 <div class="pt-1 border-t space-y-1" style="border-color: {currentTheme ? hexToRgba(currentTheme.borderColor, 50) : '#1e293b'};">
-                  <span class="text-[10px] block font-medium" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">Depolama Yöntemi:</span>
+                  <span class="text-[10px] block font-medium" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">Storage Method:</span>
                   <div class="grid grid-cols-2 gap-1.5">
                     <button
                       type="button"
@@ -1475,9 +1475,9 @@
                           ? (currentTheme ? currentTheme.accentColor : '#f59e0b')
                           : (currentTheme ? hexToRgba(currentTheme.borderColor, 50) : '#334155')};
                       "
-                      title="Orijinal dosya yolunu referans alır, disk alanı kaplamaz."
+                      title="References original file path without duplicating disk space."
                     >
-                      <span>🔗 Kısayol</span>
+                      <span>🔗 Shortcut</span>
                     </button>
                     <button
                       type="button"
@@ -1494,16 +1494,16 @@
                           ? (currentTheme ? currentTheme.accentColor : '#f59e0b')
                           : (currentTheme ? hexToRgba(currentTheme.borderColor, 50) : '#334155')};
                       "
-                      title="Dosyayı özel kasa klasörüne kopyalar. Orijinal silinse bile korunur."
+                      title="Copies the file into the secure vault directory. Preserved even if original is deleted."
                     >
-                      <span>📦 Kasaya Kopyala</span>
+                      <span>📦 Copy to Vault</span>
                     </button>
                   </div>
                   <p class="text-[10px] leading-tight truncate" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#64748b'};">
                     {#if formCopyToVault}
-                      ✓ Özel kasa klasörüne kopyalanır (Orijinal silinse de korunur)
+                      ✓ Copied to secure vault directory (preserved even if original is deleted)
                     {:else}
-                      ✓ Orijinal dosya yolu referans alınır (Disk alanı harcamaz)
+                      ✓ References original file path (saves disk space)
                     {/if}
                   </p>
                 </div>
@@ -1516,7 +1516,7 @@
           </div>
         {:else}
           <div>
-            <label for="vault-form-secret" class="block mb-0.5 font-medium" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">Gizli Değer / İçerik</label>
+            <label for="vault-form-secret" class="block mb-0.5 font-medium" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">Secret Value / Content</label>
             <textarea
               id="vault-form-secret"
               bind:value={formSecret}
@@ -1525,7 +1525,7 @@
                 color: {currentTheme ? currentTheme.textColor : '#f8fafc'} !important;
                 border: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 75) : '#334155'};
               "
-              placeholder="Şifrenizi veya değerinizi buraya yazın..."
+              placeholder="Enter your secret or content here..."
               rows="2"
               class="w-full px-2.5 py-1.5 font-mono rounded-xl focus:outline-none text-xs shadow-inner"
             ></textarea>
@@ -1540,7 +1540,7 @@
             class="w-3.5 h-3.5 rounded cursor-pointer"
             style="accent-color: {currentTheme ? currentTheme.accentColor : '#f59e0b'};"
           />
-          <span style="color: {currentTheme ? currentTheme.textColor : '#cbd5e1'};">En üstteki Sabitlenenler çubuğunda göster</span>
+          <span style="color: {currentTheme ? currentTheme.textColor : '#cbd5e1'};">Show in top Pinned bar</span>
         </label>
       </div>
 
@@ -1551,7 +1551,7 @@
           class="px-3 py-1.5 text-xs rounded-lg transition-colors cursor-pointer hover:opacity-80"
           style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};"
         >
-          İptal
+          Cancel
         </button>
         <button
           onclick={handleSaveItem}
@@ -1561,7 +1561,7 @@
             color: #ffffff;
           "
         >
-          Kaydet
+          Save
         </button>
       </div>
     </div>
@@ -1579,11 +1579,11 @@
         color: {currentTheme ? currentTheme.textColor : '#f1f5f9'};
       "
     >
-      <h3 class="text-sm font-semibold" style="color: {currentTheme ? currentTheme.textColor : '#ffffff'};">Yeni Sekme / Pano Ekle</h3>
+      <h3 class="text-sm font-semibold" style="color: {currentTheme ? currentTheme.textColor : '#ffffff'};">Add New Tab / Category</h3>
       <input
         type="text"
         bind:value={newTabName}
-        placeholder="Sekme Adı (Örn: AI, Finans)"
+        placeholder="Tab Name (e.g. AI, Finance, Docs)"
         class="w-full px-3 py-1.5 text-xs rounded-lg focus:outline-none"
         style="
           background-color: {currentTheme ? hexToRgba(currentTheme.bgColor, 95) : '#1e293b'};
@@ -1598,7 +1598,7 @@
           class="px-3 py-1 text-xs rounded-lg cursor-pointer hover:opacity-80"
           style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};"
         >
-          İptal
+          Cancel
         </button>
         <button
           onclick={handleAddTab}
@@ -1608,7 +1608,7 @@
             color: #ffffff;
           "
         >
-          Ekle
+          Add
         </button>
       </div>
     </div>
@@ -1629,14 +1629,14 @@
       <div class="flex items-center justify-between pb-2" style="border-bottom: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 70) : '#1e293b'};">
         <h3 class="text-sm font-semibold flex items-center gap-1.5" style="color: {currentTheme ? currentTheme.textColor : '#ffffff'};">
           <span>🛡️</span>
-          <span>Kasa Dosyası ve Şifreleme</span>
+          <span>Vault Storage & Encryption</span>
         </h3>
         <button
           onclick={() => (showPathModal = false)}
           class="p-1 cursor-pointer hover:opacity-80"
           style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};"
-          title="Kapat"
-          aria-label="Kapat"
+          title="Close"
+          aria-label="Close"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -1645,7 +1645,7 @@
       </div>
 
       <p class="text-xs leading-relaxed" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">
-        Kasanız ve eklediğiniz dosyalar <strong>AES-256-GCM</strong> ile şifrelenmiş olarak bilgisayarınızda saklanmaktadır.
+        Your vault and attached documents are stored locally on your system, encrypted with <strong>AES-256-GCM</strong>.
       </p>
 
       <div
@@ -1667,18 +1667,18 @@
         "
       >
         <div class="flex items-center justify-between text-xs">
-          <span style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">Şifreleme Modu:</span>
+          <span style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">Encryption Mode:</span>
           {#if status?.has_pin}
-            <span class="font-semibold flex items-center gap-1" style="color: {currentTheme ? currentTheme.accentColor : '#fbbf24'};">🔒 PIN Korumalı</span>
+            <span class="font-semibold flex items-center gap-1" style="color: {currentTheme ? currentTheme.accentColor : '#fbbf24'};">🔒 PIN Protected</span>
           {:else}
-            <span class="font-semibold flex items-center gap-1 text-emerald-400">🛡️ Otomatik Cihaz Şifrelemesi</span>
+            <span class="font-semibold flex items-center gap-1 text-emerald-400">🛡️ Automatic Device Encryption</span>
           {/if}
         </div>
         <p class="text-[11px] leading-normal" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">
           {#if status?.has_pin}
-            Kasanız belirlediğiniz PIN kodu ile korunur. Farklı bir cihaza taşındığında aynı PIN ile açılabilir.
+            Your vault is protected by your master PIN. If transferred to another device, it can be unlocked using the same PIN.
           {:else}
-            Kasanız bu bilgisayarda parola sormadan otomatik açılır. Dosyalarınız diskte 256-bit AES ile şifreli kalır.
+            Your vault unlocks automatically without prompts on this device. Your data remains encrypted with 256-bit AES on disk.
           {/if}
         </p>
         <div class="pt-1 flex justify-end">
@@ -1692,7 +1692,7 @@
                 border: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 70) : '#475569'};
               "
             >
-              PIN Korumasını Kaldır (Otomatik Açılışa Geç)
+              Remove PIN Protection (Switch to Auto-Unlock)
             </button>
           {:else}
             <button
@@ -1703,7 +1703,7 @@
                 color: #ffffff;
               "
             >
-              + PIN Koruması Ekle
+              + Add PIN Protection
             </button>
           {/if}
         </div>
@@ -1720,7 +1720,7 @@
           "
         >
           <span>📦</span>
-          <span>Yedekleme & Geri Yükleme</span>
+          <span>Backup & Restore</span>
         </button>
 
         <button
@@ -1732,7 +1732,7 @@
             border: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 70) : '#334155'};
           "
         >
-          Kapat
+          Close
         </button>
       </div>
     </div>
@@ -1753,20 +1753,20 @@
       <div class="flex items-center justify-between pb-2" style="border-bottom: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 70) : '#1e293b'};">
         <h3 class="text-sm font-semibold flex items-center gap-1.5" style="color: {currentTheme ? currentTheme.textColor : '#ffffff'};">
           <span>🔒</span>
-          <span>{status?.has_pin ? 'PIN Kodunu Değiştir' : 'PIN Koruması Ekle'}</span>
+          <span>{status?.has_pin ? 'Change Master PIN' : 'Add PIN Protection'}</span>
         </h3>
         <button
           onclick={() => (isPinModalOpen = false)}
           class="p-1 cursor-pointer hover:opacity-80"
           style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};"
-          title="Kapat"
+          title="Close"
         >
           ✕
         </button>
       </div>
 
       <p class="text-xs leading-relaxed" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">
-        Belirleyeceğiniz PIN kodu ile kasanız ve ekli tüm dosyalar şifrelenir. Her oturumda kasayı açmak için bu PIN sorulur.
+        Your vault and attached documents will be encrypted with your chosen master PIN. You will be prompted for this PIN in each session.
       </p>
 
       {#if pinModalError}
@@ -1777,7 +1777,7 @@
 
       <div class="space-y-2.5">
         <div>
-          <label class="block text-[11px] font-medium mb-1" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1'};" for="new-pin-input">Yeni PIN (en az 4 hane):</label>
+          <label class="block text-[11px] font-medium mb-1" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1'};" for="new-pin-input">New PIN (at least 4 digits):</label>
           <input
             id="new-pin-input"
             type="password"
@@ -1793,7 +1793,7 @@
           />
         </div>
         <div>
-          <label class="block text-[11px] font-medium mb-1" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1'};" for="confirm-new-pin-input">PIN'i Doğrulayın:</label>
+          <label class="block text-[11px] font-medium mb-1" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1'};" for="confirm-new-pin-input">Confirm PIN:</label>
           <input
             id="confirm-new-pin-input"
             type="password"
@@ -1817,7 +1817,7 @@
           class="px-3 py-1.5 text-xs rounded-lg cursor-pointer hover:opacity-80"
           style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};"
         >
-          İptal
+          Cancel
         </button>
         <button
           onclick={handleSetPin}
@@ -1827,7 +1827,7 @@
             color: #ffffff;
           "
         >
-          PIN'i Kaydet
+          Save PIN
         </button>
       </div>
     </div>
@@ -1848,20 +1848,20 @@
       <div class="flex items-center justify-between pb-2" style="border-bottom: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 70) : '#1e293b'};">
         <h3 class="text-sm font-semibold flex items-center gap-1.5" style="color: {currentTheme ? currentTheme.textColor : '#ffffff'};">
           <span>🔓</span>
-          <span>PIN Korumasını Kaldır</span>
+          <span>Remove PIN Protection</span>
         </h3>
         <button
           onclick={() => (isRemovePinConfirmOpen = false)}
           class="p-1 cursor-pointer hover:opacity-80"
           style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};"
-          title="Kapat"
+          title="Close"
         >
           ✕
         </button>
       </div>
 
       <p class="text-xs leading-relaxed" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1'};">
-        PIN korumasını kaldırdığınızda kasanız <strong>Otomatik Cihaz Şifrelemesi</strong> moduna geçer.
+        When you remove PIN protection, your vault switches to <strong>Automatic Device Encryption</strong> mode.
       </p>
       <div
         class="p-2.5 rounded-lg text-[11px] space-y-1.5"
@@ -1870,8 +1870,8 @@
           color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};
         "
       >
-        <div class="text-emerald-400 font-medium">✓ Verileriniz diskte AES-256-GCM ile şifreli kalmaya devam eder.</div>
-        <div>✓ Bu bilgisayarda kasayı açarken artık PIN sorulmaz.</div>
+        <div class="text-emerald-400 font-medium">✓ Your data remains securely encrypted on disk with AES-256-GCM.</div>
+        <div>✓ You will no longer be asked for a PIN on this device.</div>
       </div>
 
       <div class="flex justify-end space-x-2 pt-2" style="border-top: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 70) : '#1e293b'};">
@@ -1880,7 +1880,7 @@
           class="px-3 py-1.5 text-xs rounded-lg cursor-pointer hover:opacity-80"
           style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};"
         >
-          Vazgeç
+          Cancel
         </button>
         <button
           onclick={handleRemovePin}
@@ -1890,7 +1890,7 @@
             color: #ffffff;
           "
         >
-          PIN'i Kaldır
+          Remove PIN
         </button>
       </div>
     </div>
@@ -1911,20 +1911,20 @@
       <div class="flex items-center justify-between pb-2" style="border-bottom: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 70) : '#1e293b'};">
         <h3 class="text-sm font-semibold flex items-center gap-1.5" style="color: {currentTheme ? currentTheme.textColor : '#ffffff'};">
           <span>📦</span>
-          <span>Kasa Tam Yedekleme & Geri Yükleme</span>
+          <span>Full Vault Backup & Restore</span>
         </h3>
         <button
           onclick={() => (isBackupModalOpen = false)}
           class="p-1 cursor-pointer hover:opacity-80"
           style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};"
-          title="Kapat"
+          title="Close"
         >
           ✕
         </button>
       </div>
 
       <p class="text-xs leading-relaxed" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1'};">
-        Kasanızın tüm şifreleri, notları, sekmeleri ve ekli belgeleri tek bir şifreli yedek paketi (<strong>.vaultbak</strong>) olarak dışa aktarılabilir veya başka bir bilgisayardan geri yüklenebilir.
+        All passwords, notes, categories, and attached documents can be exported as a single encrypted backup archive (<strong>.vaultbak</strong>) or restored to another device.
       </p>
 
       {#if backupStatusMessage}
@@ -1953,10 +1953,10 @@
         >
           <div class="flex items-center gap-2 mb-1.5">
             <span class="text-base">📦</span>
-            <span class="font-semibold text-xs" style="color: {currentTheme ? currentTheme.accentColor : '#fbbf24'};">Yedek Al</span>
+            <span class="font-semibold text-xs" style="color: {currentTheme ? currentTheme.accentColor : '#fbbf24'};">Export Backup</span>
           </div>
           <span class="text-[11px] leading-snug" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">
-            Tüm kasayı .vaultbak dosyası olarak dışa aktarır.
+            Exports the complete vault into a .vaultbak archive file.
           </span>
         </button>
 
@@ -1972,10 +1972,10 @@
         >
           <div class="flex items-center gap-2 mb-1.5">
             <span class="text-base">🔄</span>
-            <span class="font-semibold text-xs" style="color: {currentTheme ? currentTheme.accentColor : '#fbbf24'};">Geri Yükle</span>
+            <span class="font-semibold text-xs" style="color: {currentTheme ? currentTheme.accentColor : '#fbbf24'};">Restore Backup</span>
           </div>
           <span class="text-[11px] leading-snug" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#94a3b8'};">
-            Daha önce aldığınız .vaultbak yedeğini yükler.
+            Restores vault data from a previously exported .vaultbak file.
           </span>
         </button>
       </div>
@@ -1990,7 +1990,7 @@
             border: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 70) : '#334155'};
           "
         >
-          Kapat
+          Close
         </button>
       </div>
     </div>

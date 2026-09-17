@@ -67,7 +67,7 @@
       currentWindowHeight = Math.round(h);
       tempSettings.window_width = currentWindowWidth;
       tempSettings.window_height = currentWindowHeight;
-      sizeSaveFeedback = `Varsayılan yapıldı (${currentWindowWidth}×${currentWindowHeight})`;
+      sizeSaveFeedback = `Saved as default (${currentWindowWidth}×${currentWindowHeight})`;
       setTimeout(() => {
         sizeSaveFeedback = '';
       }, 2500);
@@ -87,7 +87,7 @@
       currentWindowHeight = Math.round(h);
       tempSettings.window_width = currentWindowWidth;
       tempSettings.window_height = currentWindowHeight;
-      sizeSaveFeedback = 'Varsayılan (640×560) yapıldı';
+      sizeSaveFeedback = 'Reset to default (640×560)';
       setTimeout(() => {
         sizeSaveFeedback = '';
       }, 2500);
@@ -212,12 +212,12 @@
       <!-- Header -->
       <div class="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
         <h3 class="font-semibold text-slate-800 flex items-center gap-2 text-xs">
-          <img src="/logo.png" alt="ClipVault" class="w-4 h-4 rounded-sm shadow-xs object-cover" />
-          ClipVault Ayarları
+          <img src="/logo.png" alt="ClipFort" class="w-4 h-4 rounded-sm shadow-xs object-cover" />
+          ClipFort Settings
         </h3>
         <button
           onclick={onClose}
-          aria-label="Kapat"
+          aria-label="Close"
           class="text-slate-400 hover:text-slate-600 p-0.5 rounded hover:bg-slate-200 transition-colors cursor-pointer"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -239,7 +239,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          Genel
+          General
         </button>
 
         <button
@@ -252,7 +252,7 @@
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4 5 5 0 015-5h1a4 4 0 014 4v1a4 4 0 01-4 4H7zm11-14a3 3 0 11-6 0 3 3 0 016 0zM17 11h2a2 2 0 012 2v1a2 2 0 01-2 2h-2" />
           </svg>
-          Görünüm & Tema
+          Appearance & Themes
         </button>
       </div>
 
@@ -262,7 +262,7 @@
           <!-- Shortcut Setting -->
           <div class="flex items-center justify-between">
             <label class="font-medium text-slate-700" for="shortcut-btn">
-              Açılış Kısayolu:
+              Global Shortcut:
             </label>
             <button
               id="shortcut-btn"
@@ -271,17 +271,17 @@
               class="px-2.5 py-1 rounded-md border font-mono text-[11px] font-semibold transition-all cursor-pointer {isRecordingShortcut
                 ? 'bg-rose-50 border-rose-300 text-rose-600 animate-pulse ring-1 ring-rose-400'
                 : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'}"
-              title="Kısayolu değiştirmek için tıklayın ve yeni tuşlara basın"
+              title="Click to record a new global shortcut"
             >
-              {isRecordingShortcut ? 'Tuşa basın...' : tempSettings.global_shortcut}
+              {isRecordingShortcut ? 'Press keys...' : tempSettings.global_shortcut}
             </button>
           </div>
 
           <!-- Max History Limit -->
           <div>
             <div class="flex items-center justify-between mb-1">
-              <span class="font-medium text-slate-700">Geçmiş Sınırı:</span>
-              <span class="text-emerald-600 font-semibold">{tempSettings.max_history} öğe</span>
+              <span class="font-medium text-slate-700">History Limit:</span>
+              <span class="text-emerald-600 font-semibold">{tempSettings.max_history} items</span>
             </div>
             <input
               id="max-history"
@@ -297,7 +297,7 @@
           <!-- Max Vault File Size (MB) -->
           <div>
             <div class="flex items-center justify-between mb-1">
-              <span class="font-medium text-slate-700">Kasa Dosya Boyut Sınırı:</span>
+              <span class="font-medium text-slate-700">Vault Max File Size:</span>
               <span class="text-emerald-600 font-semibold">{tempSettings.max_vault_file_size_mb || 20} MB</span>
             </div>
             <input
@@ -318,7 +318,7 @@
                 <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                 </svg>
-                Pencere Boyutu:
+                Window Dimensions:
               </span>
               <span class="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700 shadow-2xs">
                 {currentWindowWidth} × {currentWindowHeight} px
@@ -326,7 +326,7 @@
             </div>
 
             <p class="text-[10px] text-slate-500 leading-tight">
-              Pencereyi kenar veya köşelerinden tutarak istediğiniz boyuta getirebilir ve varsayılan boyut yapabilirsiniz.
+              Drag borders or corners to resize window, then click below to save as startup default.
             </p>
 
             {#if sizeSaveFeedback}
@@ -343,20 +343,20 @@
                 type="button"
                 onclick={handleSaveCurrentSizeAsDefault}
                 class="flex-1 py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-700 border border-emerald-300 rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
-                title="Mevcut boyutu başlangıç boyutu olarak kaydeder"
+                title="Saves current size as startup default"
               >
                 <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
-                <span>Bu Boyutu Varsayılan Yap</span>
+                <span>Set Current as Default</span>
               </button>
               <button
                 type="button"
                 onclick={handleResetDefaultSize}
                 class="py-1.5 px-2.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-600 border border-slate-200 rounded-lg text-[11px] font-medium transition-colors cursor-pointer"
-                title="Varsayılan boyuta (640×560) sıfırlar"
+                title="Resets to default size (640×560)"
               >
-                ↺ Sıfırla
+                ↺ Reset
               </button>
             </div>
           </div>
@@ -364,22 +364,22 @@
           <!-- Vault Encryption Mode Info -->
           <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5 space-y-1">
             <div class="flex items-center justify-between">
-              <span class="font-medium text-slate-700">Kasa Güvenliği:</span>
+              <span class="font-medium text-slate-700">Vault Security Mode:</span>
               {#if vaultStatus?.has_pin}
-                <span class="text-[11px] font-semibold text-amber-600 flex items-center gap-1">🔒 PIN Korumalı</span>
+                <span class="text-[11px] font-semibold text-amber-600 flex items-center gap-1">🔒 PIN Protected</span>
               {:else if vaultStatus?.is_initialized}
-                <span class="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">🛡️ Otomatik Cihaz Şifreli</span>
+                <span class="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">🛡️ Device-Bound Encryption</span>
               {:else}
-                <span class="text-[11px] text-slate-400">Oluşturulmadı</span>
+                <span class="text-[11px] text-slate-400">Not Initialized</span>
               {/if}
             </div>
             <p class="text-[10px] text-slate-500 leading-tight">
               {#if vaultStatus?.has_pin}
-                Oturum açılışlarında anahtar PIN kodu sorulur.
+                Master PIN is required to unlock sessions.
               {:else if vaultStatus?.is_initialized}
-                AES-256-GCM ile diskte şifrelenir, PIN kodu sormadan anında açılır.
+                Encrypted on disk via AES-256-GCM, unlocks instantly on this machine.
               {:else}
-                Güvenli Kasa sekmesinden başlatabilirsiniz.
+                You can initialize the vault from the Secure Vault tab.
               {/if}
             </p>
           </div>
@@ -387,7 +387,7 @@
           <div class="border-t border-slate-100 pt-2 space-y-2">
             <!-- Close on copy checkbox -->
             <label class="flex items-center justify-between cursor-pointer select-none">
-              <span class="text-slate-700">Kopyalayınca gizle</span>
+              <span class="text-slate-700">Hide window after copying</span>
               <input
                 type="checkbox"
                 bind:checked={tempSettings.close_on_copy}
@@ -397,7 +397,7 @@
 
             <!-- 1-9 Quick slot copy checkbox -->
             <label class="flex items-center justify-between cursor-pointer select-none">
-              <span class="text-slate-700">1-9 ile anında kopyala</span>
+              <span class="text-slate-700">Quick copy with number keys (1-9)</span>
               <input
                 type="checkbox"
                 bind:checked={tempSettings.number_keys_copy}
@@ -407,7 +407,7 @@
 
             <!-- Autostart on boot checkbox -->
             <label class="flex items-center justify-between cursor-pointer select-none">
-              <span class="text-slate-700">Bilgisayar açıldığında otomatik başlasın</span>
+              <span class="text-slate-700">Launch automatically on system boot</span>
               <input
                 type="checkbox"
                 bind:checked={tempSettings.run_at_startup}
@@ -421,25 +421,25 @@
                 type="button"
                 onclick={() => invoke('reset_window_position')}
                 class="w-full py-1.5 px-2 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-600 hover:text-slate-800 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                title="Pencereyi varsayılan ekran sağ alt konumuna geri taşır"
+                title="Positions window at bottom-right corner"
               >
                 <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                 </svg>
-                <span>Konumu Sağ Alta Sıfırla</span>
+                <span>Reset Position to Bottom-Right</span>
               </button>
             </div>
 
             <!-- Keyboard Shortcuts Reference -->
             <div class="pt-2 border-t border-slate-100">
-              <span class="text-[11px] font-semibold text-slate-700 block mb-1.5">⌨️ Klavye Kısayolları</span>
+              <span class="text-[11px] font-semibold text-slate-700 block mb-1.5">⌨️ Keyboard Shortcuts Reference</span>
               <div class="grid grid-cols-2 gap-1.5 text-[10px] text-slate-600 bg-slate-50 p-2 rounded-xl border border-slate-200/70">
-                <div class="flex items-center justify-between"><kbd class="px-1 py-0.5 bg-white border border-slate-200 rounded font-mono">↑ / ↓</kbd> <span>Gezin</span></div>
-                <div class="flex items-center justify-between"><kbd class="px-1 py-0.5 bg-white border border-slate-200 rounded font-mono">Enter</kbd> <span>Kopyala</span></div>
-                <div class="flex items-center justify-between"><kbd class="px-1 py-0.5 bg-white border border-slate-200 rounded font-mono">1-9</kbd> <span>Hızlı Seç</span></div>
-                <div class="flex items-center justify-between"><kbd class="px-1 py-0.5 bg-white border border-slate-200 rounded font-mono">Alt+↑/↓</kbd> <span>Sırala</span></div>
-                <div class="flex items-center justify-between"><kbd class="px-1 py-0.5 bg-white border border-slate-200 rounded font-mono">P</kbd> <span>Sabitle</span></div>
-                <div class="flex items-center justify-between"><kbd class="px-1 py-0.5 bg-white border border-slate-200 rounded font-mono">Del</kbd> <span>Sil</span></div>
+                <div class="flex items-center justify-between"><kbd class="px-1 py-0.5 bg-white border border-slate-200 rounded font-mono">↑ / ↓</kbd> <span>Navigate</span></div>
+                <div class="flex items-center justify-between"><kbd class="px-1 py-0.5 bg-white border border-slate-200 rounded font-mono">Enter</kbd> <span>Copy</span></div>
+                <div class="flex items-center justify-between"><kbd class="px-1 py-0.5 bg-white border border-slate-200 rounded font-mono">1-9</kbd> <span>Quick Select</span></div>
+                <div class="flex items-center justify-between"><kbd class="px-1 py-0.5 bg-white border border-slate-200 rounded font-mono">Alt+↑/↓</kbd> <span>Reorder</span></div>
+                <div class="flex items-center justify-between"><kbd class="px-1 py-0.5 bg-white border border-slate-200 rounded font-mono">P</kbd> <span>Pin / Unpin</span></div>
+                <div class="flex items-center justify-between"><kbd class="px-1 py-0.5 bg-white border border-slate-200 rounded font-mono">Del</kbd> <span>Delete</span></div>
               </div>
             </div>
           </div>
@@ -450,10 +450,10 @@
           <div>
             <div class="flex items-center justify-between mb-2">
               <span class="font-medium text-slate-800 flex items-center gap-1.5">
-                <span>🎨</span> Tema Şablonları
+                <span>🎨</span> Theme Presets
               </span>
               {#if tempSettings.theme_preset === 'custom'}
-                <span class="text-[10px] px-1.5 py-0.5 bg-amber-50 text-amber-600 border border-amber-200 rounded font-semibold">Özel Renkler</span>
+                <span class="text-[10px] px-1.5 py-0.5 bg-amber-50 text-amber-600 border border-amber-200 rounded font-semibold">Custom</span>
               {/if}
             </div>
 
@@ -485,10 +485,10 @@
             </div>
           </div>
 
-          <!-- 2. Individual Color Pickers / Ayrı Renk Değişimi -->
+          <!-- 2. Individual Color Pickers -->
           <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-2.5">
             <span class="font-medium text-slate-800 flex items-center gap-1.5">
-              <span>🖌️</span> Renkleri Ayrı Ayarla
+              <span>🖌️</span> Customize Colors
             </span>
 
             <div class="space-y-2">
@@ -496,7 +496,7 @@
               <div class="flex items-center justify-between">
                 <span class="text-slate-600 text-[11px] flex items-center gap-1.5">
                   <span class="w-2.5 h-2.5 rounded-full" style="background-color: {tempSettings.custom_bg_color}"></span>
-                  Arka Plan Rengi:
+                  Background Color:
                 </span>
                 <div class="flex items-center gap-1.5">
                   <input
@@ -518,7 +518,7 @@
               <div class="flex items-center justify-between">
                 <span class="text-slate-600 text-[11px] flex items-center gap-1.5">
                   <span class="w-2.5 h-2.5 rounded-full" style="background-color: {tempSettings.custom_card_color}"></span>
-                  Kart / Panel Rengi:
+                  Card / Panel Color:
                 </span>
                 <div class="flex items-center gap-1.5">
                   <input
@@ -540,7 +540,7 @@
               <div class="flex items-center justify-between">
                 <span class="text-slate-600 text-[11px] flex items-center gap-1.5">
                   <span class="w-2.5 h-2.5 rounded-full" style="background-color: {tempSettings.custom_accent_color}"></span>
-                  Vurgu (Buton) Rengi:
+                  Accent (Button) Color:
                 </span>
                 <div class="flex items-center gap-1.5">
                   <input
@@ -562,7 +562,7 @@
               <div class="flex items-center justify-between">
                 <span class="text-slate-600 text-[11px] flex items-center gap-1.5">
                   <span class="w-2.5 h-2.5 rounded-full" style="background-color: {tempSettings.custom_text_color}"></span>
-                  Metin Rengi:
+                  Text Color:
                 </span>
                 <div class="flex items-center gap-1.5">
                   <input
@@ -584,7 +584,7 @@
               <div class="flex items-center justify-between">
                 <span class="text-slate-600 text-[11px] flex items-center gap-1.5">
                   <span class="w-2.5 h-2.5 rounded-full" style="background-color: {tempSettings.custom_secondary_text_color || '#64748b'}"></span>
-                  İkincil / Gri Metin & İkon:
+                  Secondary Text & Icons:
                 </span>
                 <div class="flex items-center gap-1.5">
                   <input
@@ -606,7 +606,7 @@
               <div class="flex items-center justify-between">
                 <span class="text-slate-600 text-[11px] flex items-center gap-1.5">
                   <span class="w-2.5 h-2.5 rounded-full" style="background-color: {tempSettings.custom_border_color}"></span>
-                  Kenarlık Rengi:
+                  Border Color:
                 </span>
                 <div class="flex items-center gap-1.5">
                   <input
@@ -626,10 +626,10 @@
             </div>
           </div>
 
-          <!-- 3. Background Image / Arkaplan Görseli -->
+          <!-- 3. Background Image -->
           <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-2">
             <span class="font-medium text-slate-800 flex items-center gap-1.5">
-              <span>🖼️</span> Arka Plan Görseli
+              <span>🖼️</span> Background Wallpaper
             </span>
 
             <div class="flex items-center gap-3">
@@ -637,24 +637,24 @@
                 <div class="relative w-14 h-12 rounded-lg border border-slate-300 overflow-hidden shrink-0 shadow-2xs">
                   <img
                     src={tempSettings.bg_image}
-                    alt="Arka plan önizleme"
+                    alt="Background preview"
                     class="w-full h-full object-cover"
                   />
                 </div>
                 <div class="flex-1 flex flex-col gap-1">
-                  <span class="text-[11px] text-emerald-600 font-medium">Görsel Yüklü</span>
+                  <span class="text-[11px] text-emerald-600 font-medium">Image Loaded</span>
                   <button
                     type="button"
                     onclick={handleRemoveBgImage}
                     class="py-1 px-2 text-[10px] font-medium text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-md transition-colors self-start cursor-pointer"
                   >
-                    Görseli Kaldır
+                    Remove Image
                   </button>
                 </div>
               {:else}
                 <div class="flex-1">
                   <p class="text-[10px] text-slate-500 mb-1.5">
-                    Özel bir arka plan resmi seçip şeffaflıkla birleştirebilirsiniz.
+                    Select a custom background image to blend with window transparency.
                   </p>
                   <label
                     for="bg-file-upload"
@@ -663,7 +663,7 @@
                     <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span>Resim Seç (JPG, PNG)</span>
+                    <span>Choose Image (JPG, PNG)</span>
                   </label>
                   <input
                     id="bg-file-upload"
@@ -677,17 +677,17 @@
             </div>
           </div>
 
-          <!-- 4. Opacity & Blur Controls / Opaklık ve Efektler -->
+          <!-- 4. Opacity & Blur Controls -->
           <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-3">
             <span class="font-medium text-slate-800 flex items-center gap-1.5">
-              <span>🎚️</span> Opaklık & Cam Efekti
+              <span>🎚️</span> Opacity & Glass Effect
             </span>
 
             <!-- Background Opacity -->
             <div>
               <div class="flex items-center justify-between mb-1">
-                <span class="text-slate-600 text-[11px]">Arka Plan Opaklığı:</span>
-                <span class="text-emerald-600 font-semibold font-mono text-[11px]">%{tempSettings.bg_opacity ?? 95}</span>
+                <span class="text-slate-600 text-[11px]">Background Opacity:</span>
+                <span class="text-emerald-600 font-semibold font-mono text-[11px]">{tempSettings.bg_opacity ?? 95}%</span>
               </div>
               <input
                 id="bg-opacity"
@@ -700,12 +700,12 @@
               />
             </div>
 
-            <!-- Background Image Opacity (if image present) -->
+            <!-- Background Image Opacity -->
             {#if tempSettings.bg_image}
               <div>
                 <div class="flex items-center justify-between mb-1">
-                  <span class="text-slate-600 text-[11px]">Görsel Görünürlüğü:</span>
-                  <span class="text-emerald-600 font-semibold font-mono text-[11px]">%{tempSettings.bg_image_opacity ?? 25}</span>
+                  <span class="text-slate-600 text-[11px]">Wallpaper Visibility:</span>
+                  <span class="text-emerald-600 font-semibold font-mono text-[11px]">{tempSettings.bg_image_opacity ?? 25}%</span>
                 </div>
                 <input
                   id="bg-img-opacity"
@@ -721,13 +721,13 @@
 
             <!-- Blur Effect -->
             <div>
-              <span class="text-slate-600 text-[11px] block mb-1.5">Bulanıklık (Cam / Blur Efekti):</span>
+              <span class="text-slate-600 text-[11px] block mb-1.5">Blur Intensity (Glassmorphism):</span>
               <div class="grid grid-cols-4 gap-1.5">
                 {#each [
-                  { id: 'none', label: 'Yok' },
-                  { id: 'sm', label: 'Hafif' },
-                  { id: 'md', label: 'Orta' },
-                  { id: 'lg', label: 'Yoğun' },
+                  { id: 'none', label: 'None' },
+                  { id: 'sm', label: 'Light' },
+                  { id: 'md', label: 'Medium' },
+                  { id: 'lg', label: 'Strong' },
                 ] as blurOpt}
                   <button
                     type="button"
@@ -751,7 +751,7 @@
           onclick={onClose}
           class="px-3 py-1.5 text-slate-600 hover:text-slate-800 text-xs font-medium rounded-lg hover:bg-slate-200 transition-colors cursor-pointer"
         >
-          İptal
+          Cancel
         </button>
         <button
           onclick={handleSave}
@@ -760,7 +760,7 @@
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
           </svg>
-          <span>Kaydet</span>
+          <span>Save Settings</span>
         </button>
       </div>
     </div>

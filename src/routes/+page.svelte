@@ -47,7 +47,7 @@
         if (item.item_type === 'text') {
           return item.content.toLowerCase().includes(q);
         } else {
-          return 'görsel resim image'.includes(q);
+          return 'image picture photo screenshot visual'.includes(q);
         }
       }
       return true;
@@ -84,12 +84,12 @@
   async function handleExportHistory(format: 'markdown' | 'text') {
     try {
       const savedPath = await invoke<string>('export_clipboard_history', { format });
-      exportToast = `Geçmiş dışa aktarıldı:\n${savedPath}`;
+      exportToast = `History exported successfully:\n${savedPath}`;
       setTimeout(() => {
         exportToast = null;
       }, 4000);
     } catch (e: any) {
-      alert(`Dışa aktarma hatası: ${e}`);
+      alert(`Export error: ${e}`);
     }
   }
 
@@ -362,14 +362,14 @@
               </svg>
             </div>
             {#if searchQuery}
-              <p class="text-sm font-medium" style="color: {currentTheme.textColor};">Eşleşen sonuç bulunamadı</p>
-              <p class="text-xs mt-1" style="color: {hexToRgba(currentTheme.textColor, 60)};">"{searchQuery}" için kayıtlı bir pano öğesi yok.</p>
+              <p class="text-sm font-medium" style="color: {currentTheme.textColor};">No matching items found</p>
+              <p class="text-xs mt-1" style="color: {hexToRgba(currentTheme.textColor, 60)};">No clipboard item matches "{searchQuery}".</p>
             {:else if activeCategory === 'pinned'}
-              <p class="text-sm font-medium" style="color: {currentTheme.textColor};">Henüz sabitlenmiş öğe yok</p>
-              <p class="text-xs mt-1" style="color: {hexToRgba(currentTheme.textColor, 60)};">Önemli notları sabitlemek için üzerindeki iğneye veya 'P' tuşuna basın.</p>
+              <p class="text-sm font-medium" style="color: {currentTheme.textColor};">No pinned items yet</p>
+              <p class="text-xs mt-1" style="color: {hexToRgba(currentTheme.textColor, 60)};">Press 'P' or click the pin icon to pin an item to the top.</p>
             {:else}
-              <p class="text-sm font-medium" style="color: {currentTheme.textColor};">Pano geçmişiniz boş</p>
-              <p class="text-xs mt-1" style="color: {hexToRgba(currentTheme.textColor, 60)};">Herhangi bir metin veya görsel kopyaladığınızda burada görünecektir.</p>
+              <p class="text-sm font-medium" style="color: {currentTheme.textColor};">Clipboard history is empty</p>
+              <p class="text-xs mt-1" style="color: {hexToRgba(currentTheme.textColor, 60)};">Any copied text or image will appear here automatically.</p>
             {/if}
           </div>
         {:else}
@@ -427,7 +427,7 @@
       <button
         onclick={() => (exportToast = null)}
         class="ml-2 text-slate-400 hover:text-white text-xs cursor-pointer"
-        aria-label="Kapat"
+        aria-label="Close"
       >
         ✕
       </button>
@@ -448,21 +448,21 @@
         <div class="flex items-center justify-between pb-2" style="border-bottom: 1px solid {currentTheme ? hexToRgba(currentTheme.borderColor, 70) : '#e2e8f0'};">
           <h3 class="text-sm font-semibold flex items-center gap-1.5" style="color: {currentTheme ? currentTheme.textColor : '#0f172a'};">
             <span>📥</span>
-            <span>Pano Geçmişini Dışa Aktar</span>
+            <span>Export Clipboard History</span>
           </h3>
           <button
             onclick={() => (isExportModalOpen = false)}
             class="p-1 cursor-pointer hover:opacity-80"
             style="color: {currentTheme ? currentTheme.secondaryTextColor : '#64748b'};"
-            title="Kapat"
-            aria-label="Kapat"
+            title="Close"
+            aria-label="Close"
           >
             ✕
           </button>
         </div>
 
         <p class="text-xs leading-relaxed" style="color: {currentTheme ? currentTheme.secondaryTextColor : '#64748b'};">
-          Tüm kopyalanan metin geçmişinizi İndirilenler klasörüne dosya olarak aktarabilirsiniz:
+          Export your entire copied text history to a file in your Downloads folder:
         </p>
 
         <div class="grid grid-cols-2 gap-2.5 pt-1">
@@ -479,7 +479,7 @@
           >
             <span class="text-lg mb-1">📝</span>
             <span class="font-semibold text-xs" style="color: {currentTheme ? currentTheme.accentColor : '#10b981'};">Markdown (.md)</span>
-            <span class="text-[10px] opacity-70 mt-0.5">Not defteri formatı</span>
+            <span class="text-[10px] opacity-70 mt-0.5">Notebook format</span>
           </button>
 
           <button
@@ -494,8 +494,8 @@
             "
           >
             <span class="text-lg mb-1">📄</span>
-            <span class="font-semibold text-xs" style="color: {currentTheme ? currentTheme.accentColor : '#10b981'};">Düz Metin (.txt)</span>
-            <span class="text-[10px] opacity-70 mt-0.5">Salt metin formatı</span>
+            <span class="font-semibold text-xs" style="color: {currentTheme ? currentTheme.accentColor : '#10b981'};">Plain Text (.txt)</span>
+            <span class="text-[10px] opacity-70 mt-0.5">Raw text format</span>
           </button>
         </div>
 
@@ -508,7 +508,7 @@
               color: {currentTheme ? currentTheme.secondaryTextColor : '#64748b'};
             "
           >
-            Vazgeç
+            Cancel
           </button>
         </div>
       </div>

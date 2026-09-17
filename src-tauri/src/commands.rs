@@ -100,22 +100,26 @@ pub fn update_linux_autostart(enabled: bool) {
     {
         if let Some(config_dir) = dirs::config_dir() {
             let autostart_dir = config_dir.join("autostart");
-            let desktop_file = autostart_dir.join("clipvault.desktop");
-            let old_desktop_file = autostart_dir.join("clipboard-manager.desktop");
-            if old_desktop_file.exists() {
-                let _ = std::fs::remove_file(&old_desktop_file);
+            let desktop_file = autostart_dir.join("clipfort.desktop");
+            let old_desktop_file1 = autostart_dir.join("clipvault.desktop");
+            let old_desktop_file2 = autostart_dir.join("clipboard-manager.desktop");
+            if old_desktop_file1.exists() {
+                let _ = std::fs::remove_file(&old_desktop_file1);
+            }
+            if old_desktop_file2.exists() {
+                let _ = std::fs::remove_file(&old_desktop_file2);
             }
             if enabled {
-                let exe_path = if std::path::Path::new("/usr/bin/clipvault").exists() {
-                    "/usr/bin/clipvault".to_string()
+                let exe_path = if std::path::Path::new("/usr/bin/clipfort").exists() {
+                    "/usr/bin/clipfort".to_string()
                 } else if let Ok(exe) = std::env::current_exe() {
                     exe.to_string_lossy().to_string()
                 } else {
-                    "clipvault".to_string()
+                    "clipfort".to_string()
                 };
                 let _ = std::fs::create_dir_all(&autostart_dir);
                 let content = format!(
-                    "[Desktop Entry]\nType=Application\nName=ClipVault\nComment=Modern Linux Clipboard Manager & Secure Vault\nExec={}\nIcon=clipvault\nTerminal=false\nCategories=Utility;\nX-GNOME-Autostart-enabled=true\n",
+                    "[Desktop Entry]\nType=Application\nName=ClipFort\nComment=Lightweight Cross-Platform Clipboard Manager & Encrypted Vault\nExec={}\nIcon=clipfort\nTerminal=false\nCategories=Utility;\nX-GNOME-Autostart-enabled=true\n",
                     exe_path
                 );
                 let _ = std::fs::write(&desktop_file, content);
@@ -469,13 +473,11 @@ pub fn copy_vault_file(
 
     // Clean up any legacy .cache vault folder if it exists
     if let Some(c_dir) = dirs::cache_dir() {
-        let old_cache1 = c_dir.join("clipboard-manager").join("vault_cache");
-        if old_cache1.exists() {
-            let _ = fs::remove_dir_all(&old_cache1);
-        }
-        let old_cache2 = c_dir.join("clipvault").join("vault_cache");
-        if old_cache2.exists() {
-            let _ = fs::remove_dir_all(&old_cache2);
+        for old in &["clipboard-manager", "clipvault", "clipfort"] {
+            let old_cache = c_dir.join(old).join("vault_cache");
+            if old_cache.exists() {
+                let _ = fs::remove_dir_all(&old_cache);
+            }
         }
     }
 

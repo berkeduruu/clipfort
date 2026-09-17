@@ -215,9 +215,9 @@ pub fn run() {
             }
 
             // 1. Setup system tray
-            let toggle_item = MenuItem::with_id(app, "toggle", "Pano Yöneticisini Göster / Gizle", true, None::<&str>)?;
-            let clear_unpinned_item = MenuItem::with_id(app, "clear_unpinned", "Sabitlenmemişleri Temizle", true, None::<&str>)?;
-            let quit_item = MenuItem::with_id(app, "quit", "Çıkış", true, None::<&str>)?;
+            let toggle_item = MenuItem::with_id(app, "toggle", "Show / Hide ClipFort", true, None::<&str>)?;
+            let clear_unpinned_item = MenuItem::with_id(app, "clear_unpinned", "Clear Unpinned Items", true, None::<&str>)?;
+            let quit_item = MenuItem::with_id(app, "quit", "Quit ClipFort", true, None::<&str>)?;
 
             let tray_menu = Menu::with_items(app, &[&toggle_item, &clear_unpinned_item, &quit_item])?;
 

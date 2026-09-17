@@ -15,7 +15,7 @@ export interface ThemeDefinition {
 export const THEME_PRESETS: Record<ThemePreset, ThemeDefinition> = {
   light: {
     id: 'light',
-    name: 'Açık (Sade)',
+    name: 'Light Minimal',
     bg_color: '#f8fafc',
     card_color: '#ffffff',
     accent_color: '#10b981',
@@ -26,7 +26,7 @@ export const THEME_PRESETS: Record<ThemePreset, ThemeDefinition> = {
   },
   dark: {
     id: 'dark',
-    name: 'Modern Koyu',
+    name: 'Modern Dark',
     bg_color: '#0f172a',
     card_color: '#1e293b',
     accent_color: '#10b981',
@@ -37,7 +37,7 @@ export const THEME_PRESETS: Record<ThemePreset, ThemeDefinition> = {
   },
   midnight: {
     id: 'midnight',
-    name: 'Gece Mavisi',
+    name: 'Midnight Blue',
     bg_color: '#0b132b',
     card_color: '#1c2541',
     accent_color: '#38bdf8',
@@ -48,7 +48,7 @@ export const THEME_PRESETS: Record<ThemePreset, ThemeDefinition> = {
   },
   emerald: {
     id: 'emerald',
-    name: 'Zümrüt Ormanı',
+    name: 'Emerald Forest',
     bg_color: '#06281e',
     card_color: '#0c3b2e',
     accent_color: '#34d399',
@@ -59,7 +59,7 @@ export const THEME_PRESETS: Record<ThemePreset, ThemeDefinition> = {
   },
   cyberpunk: {
     id: 'cyberpunk',
-    name: 'Siber Mor',
+    name: 'Cyber Violet',
     bg_color: '#140c24',
     card_color: '#241442',
     accent_color: '#e879f9',
@@ -70,7 +70,7 @@ export const THEME_PRESETS: Record<ThemePreset, ThemeDefinition> = {
   },
   sunset: {
     id: 'sunset',
-    name: 'Sıcak Amber',
+    name: 'Warm Amber',
     bg_color: '#1c140d',
     card_color: '#2e1f14',
     accent_color: '#f59e0b',
@@ -81,7 +81,7 @@ export const THEME_PRESETS: Record<ThemePreset, ThemeDefinition> = {
   },
   custom: {
     id: 'custom',
-    name: 'Özel Renkler',
+    name: 'Custom Colors',
     bg_color: '#0f172a',
     card_color: '#1e293b',
     accent_color: '#10b981',
