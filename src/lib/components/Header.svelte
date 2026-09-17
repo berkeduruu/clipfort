@@ -61,7 +61,7 @@
   "
 >
   <!-- Top Bar: Mode Switcher, Draggable Region & Global Actions -->
-  <div data-tauri-drag-region class="flex items-center justify-between mb-2">
+  <div class="flex items-center justify-between mb-2">
     <!-- App Brand & Segmented Mode Switcher -->
     <div class="flex items-center space-x-2">
       <img src="/logo.svg" alt="ClipFort" class="w-5 h-5 object-contain select-none pointer-events-none shrink-0" title="ClipFort" />

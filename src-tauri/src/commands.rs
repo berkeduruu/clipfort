@@ -319,11 +319,22 @@ pub fn apply_window_size(
 ) -> Result<(f64, f64), String> {
     if let Some(window) = app_handle.get_webview_window("main") {
         let _ = window.set_size(tauri::LogicalSize::new(width, height));
+        #[cfg(target_os = "linux")]
+        {
+            use gtk::prelude::*;
+            if let Ok(gtk_win) = window.gtk_window() {
+                gtk_win.resize(width.round() as i32, height.round() as i32);
+            }
+        }
         if save_as_default {
             let mut settings = storage.get_settings();
             settings.window_width = width.round();
             settings.window_height = height.round();
             storage.save_settings(settings)?;
+        }
+        // If user hasn't dragged window to custom location, keep anchored at bottom right with new dimensions
+        if !crate::USER_HAS_DRAGGED_WINDOW.load(Ordering::SeqCst) {
+            crate::apply_current_target_position(&window);
         }
         Ok((width, height))
     } else {
@@ -333,7 +344,6 @@ pub fn apply_window_size(
 
 #[tauri::command]
 pub fn reset_window_position(app_handle: AppHandle) {
-    crate::USER_HAS_DRAGGED_WINDOW.store(false, Ordering::SeqCst);
     if let Some(window) = app_handle.get_webview_window("main") {
         crate::position_bottom_right(&window);
     }
@@ -347,22 +357,17 @@ pub fn notify_user_dragged() {
 #[tauri::command]
 pub fn move_window_by(dx: i32, dy: i32, app_handle: AppHandle) {
     crate::USER_HAS_DRAGGED_WINDOW.store(true, Ordering::SeqCst);
-    let new_x = crate::CURRENT_WINDOW_X.fetch_add(dx, Ordering::SeqCst) + dx;
-    let new_y = crate::CURRENT_WINDOW_Y.fetch_add(dy, Ordering::SeqCst) + dy;
-
     if let Some(window) = app_handle.get_webview_window("main") {
-        #[cfg(target_os = "linux")]
-        {
-            use gtk::prelude::*;
-            if let Ok(gtk_win) = window.gtk_window() {
-                gtk_win.move_(new_x, new_y);
-                return;
-            }
-        }
-        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
-            x: new_x,
-            y: new_y,
-        }));
+        let (cur_x, cur_y) = if crate::USER_CUSTOM_X.load(Ordering::SeqCst) > 0 {
+            (crate::USER_CUSTOM_X.load(Ordering::SeqCst), crate::USER_CUSTOM_Y.load(Ordering::SeqCst))
+        } else {
+            crate::calculate_bottom_right_position(&window)
+        };
+        let new_x = (cur_x + dx).max(0);
+        let new_y = (cur_y + dy).max(0);
+        crate::USER_CUSTOM_X.store(new_x, Ordering::SeqCst);
+        crate::USER_CUSTOM_Y.store(new_y, Ordering::SeqCst);
+        crate::apply_position(&window, new_x, new_y);
     }
 }
 

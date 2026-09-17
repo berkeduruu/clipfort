@@ -11,7 +11,6 @@
     e.stopPropagation();
 
     if (appWindow) {
-      invoke('notify_user_dragged').catch(() => {});
       appWindow.startResizeDragging(direction).catch((err) => {
         console.error('startResizeDragging error:', err);
       });

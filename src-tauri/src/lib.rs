@@ -16,13 +16,11 @@ use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 pub static USER_HAS_DRAGGED_WINDOW: AtomicBool = AtomicBool::new(false);
+pub static USER_CUSTOM_X: AtomicI32 = AtomicI32::new(-1);
+pub static USER_CUSTOM_Y: AtomicI32 = AtomicI32::new(-1);
 pub static IS_PROGRAMMATIC_POSITIONING: AtomicBool = AtomicBool::new(false);
-pub static CURRENT_WINDOW_X: AtomicI32 = AtomicI32::new(1256);
-pub static CURRENT_WINDOW_Y: AtomicI32 = AtomicI32::new(466);
 
-pub fn position_bottom_right(window: &WebviewWindow) {
-    IS_PROGRAMMATIC_POSITIONING.store(true, Ordering::SeqCst);
-
+pub fn calculate_bottom_right_position(window: &WebviewWindow) -> (i32, i32) {
     #[cfg(target_os = "linux")]
     {
         use gtk::gdk::prelude::MonitorExt;
@@ -32,7 +30,7 @@ pub fn position_bottom_right(window: &WebviewWindow) {
                 let geom = monitor.geometry();
                 let (target_w, target_h) = if let Ok(gtk_win) = window.gtk_window() {
                     let (w, h) = gtk_win.size();
-                    (if w > 0 { w } else { 640 }, if h > 0 { h } else { 560 })
+                    (if w > 100 { w } else { 640 }, if h > 100 { h } else { 560 })
                 } else {
                     (640, 560)
                 };
@@ -40,15 +38,7 @@ pub fn position_bottom_right(window: &WebviewWindow) {
                 // 24px from right, 54px from bottom (space for dock/taskbar)
                 let x = geom.x() + geom.width() - target_w - 24;
                 let y = geom.y() + geom.height() - target_h - 54;
-
-                println!("[Window] GTK Positioning to: x={}, y={} (monitor: {}x{})", x, y, geom.width(), geom.height());
-                CURRENT_WINDOW_X.store(x.max(0), Ordering::SeqCst);
-                CURRENT_WINDOW_Y.store(y.max(0), Ordering::SeqCst);
-                if let Ok(gtk_win) = window.gtk_window() {
-                    gtk_win.move_(x.max(0), y.max(0));
-                    IS_PROGRAMMATIC_POSITIONING.store(false, Ordering::SeqCst);
-                    return;
-                }
+                return (x.max(0), y.max(0));
             }
         }
     }
@@ -71,17 +61,77 @@ pub fn position_bottom_right(window: &WebviewWindow) {
 
         let x = mon_pos.x + (screen_size.width as i32) - (win_size.width as i32) - margin_x;
         let y = mon_pos.y + (screen_size.height as i32) - (win_size.height as i32) - margin_bottom;
+        (x.max(0), y.max(0))
+    } else {
+        (1256, 466)
+    }
+}
 
-        println!("[Window] Tauri Positioning to: x={}, y={}", x, y);
-        CURRENT_WINDOW_X.store(x.max(0), Ordering::SeqCst);
-        CURRENT_WINDOW_Y.store(y.max(0), Ordering::SeqCst);
-        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
-            x: x.max(0),
-            y: y.max(0),
-        }));
+pub fn apply_position(window: &WebviewWindow, x: i32, y: i32) {
+    IS_PROGRAMMATIC_POSITIONING.store(true, Ordering::SeqCst);
+
+    #[cfg(target_os = "linux")]
+    {
+        use gtk::prelude::*;
+        if let Ok(gtk_win) = window.gtk_window() {
+            gtk_win.set_type_hint(gdk::WindowTypeHint::Utility);
+            gtk_win.set_decorated(false);
+            gtk_win.move_(x, y);
+            if let Some(gdk_win) = gtk_win.window() {
+                gdk_win.move_(x, y);
+            }
+        }
     }
 
-    IS_PROGRAMMATIC_POSITIONING.store(false, Ordering::SeqCst);
+    let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition { x, y }));
+
+    #[cfg(target_os = "linux")]
+    {
+        let win_clone = window.clone();
+        gtk::glib::timeout_add_local_once(std::time::Duration::from_millis(40), move || {
+            use gtk::prelude::*;
+            if let Ok(gtk_win) = win_clone.gtk_window() {
+                gtk_win.move_(x, y);
+                if let Some(gdk_win) = gtk_win.window() {
+                    gdk_win.move_(x, y);
+                }
+            }
+            let _ = win_clone.set_position(tauri::Position::Physical(tauri::PhysicalPosition { x, y }));
+            IS_PROGRAMMATIC_POSITIONING.store(false, Ordering::SeqCst);
+        });
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    {
+        IS_PROGRAMMATIC_POSITIONING.store(false, Ordering::SeqCst);
+    }
+}
+
+pub fn apply_current_target_position(window: &WebviewWindow) {
+    let (target_x, target_y) = if USER_HAS_DRAGGED_WINDOW.load(Ordering::SeqCst) {
+        let cx = USER_CUSTOM_X.load(Ordering::SeqCst);
+        let cy = USER_CUSTOM_Y.load(Ordering::SeqCst);
+        if cx > 10 && cy > 10 {
+            (cx, cy)
+        } else {
+            calculate_bottom_right_position(window)
+        }
+    } else {
+        calculate_bottom_right_position(window)
+    };
+
+    println!("[Window] Applying target position: ({}, {}) (user_dragged={})",
+        target_x, target_y, USER_HAS_DRAGGED_WINDOW.load(Ordering::SeqCst));
+
+    apply_position(window, target_x, target_y);
+}
+
+pub fn position_bottom_right(window: &WebviewWindow) {
+    USER_HAS_DRAGGED_WINDOW.store(false, Ordering::SeqCst);
+    USER_CUSTOM_X.store(-1, Ordering::SeqCst);
+    USER_CUSTOM_Y.store(-1, Ordering::SeqCst);
+    let (x, y) = calculate_bottom_right_position(window);
+    apply_position(window, x, y);
 }
 
 pub fn toggle_main_window(app: &AppHandle) {
@@ -100,10 +150,8 @@ fn toggle_main_window_inner(app: &AppHandle) {
         if is_visible {
             let _ = window.hide();
         } else {
-            // Position at bottom-right if user hasn't dragged it to a custom location
-            if !USER_HAS_DRAGGED_WINDOW.load(Ordering::SeqCst) {
-                position_bottom_right(&window);
-            }
+            // Apply target position before showing
+            apply_current_target_position(&window);
 
             let _ = window.show();
             let _ = window.unminimize();
@@ -124,6 +172,9 @@ fn toggle_main_window_inner(app: &AppHandle) {
                     }
                 }
             }
+
+            // Re-affirm position after presentation so WM cannot reset it to (0, 0)
+            apply_current_target_position(&window);
 
             let _ = window.emit("window-opened", ());
         }
@@ -153,8 +204,20 @@ pub fn run() {
         )
         .on_window_event(|_window, event| {
             if let tauri::WindowEvent::Moved(pos) = event {
-                CURRENT_WINDOW_X.store(pos.x, Ordering::SeqCst);
-                CURRENT_WINDOW_Y.store(pos.y, Ordering::SeqCst);
+                // Ignore programmatic moves
+                if IS_PROGRAMMATIC_POSITIONING.load(Ordering::SeqCst) {
+                    return;
+                }
+                // Ignore spurious (0, 0) coordinates from X11 window mapping
+                if pos.x < 15 && pos.y < 15 {
+                    return;
+                }
+                // Only save custom coordinate if user has intentionally dragged the window
+                if USER_HAS_DRAGGED_WINDOW.load(Ordering::SeqCst) {
+                    USER_CUSTOM_X.store(pos.x, Ordering::SeqCst);
+                    USER_CUSTOM_Y.store(pos.y, Ordering::SeqCst);
+                    println!("[Window] Recorded user custom position: ({}, {})", pos.x, pos.y);
+                }
             }
         })
         .manage(storage_manager.clone())
@@ -210,6 +273,14 @@ pub fn run() {
 
             // Apply saved window size and position window at bottom right on initial launch
             if let Some(window) = app.get_webview_window("main") {
+                #[cfg(target_os = "linux")]
+                {
+                    use gtk::prelude::*;
+                    if let Ok(gtk_win) = window.gtk_window() {
+                        gtk_win.set_type_hint(gdk::WindowTypeHint::Utility);
+                        gtk_win.set_decorated(false);
+                    }
+                }
                 let _ = window.set_size(tauri::LogicalSize::new(saved_settings.window_width, saved_settings.window_height));
                 position_bottom_right(&window);
             }
