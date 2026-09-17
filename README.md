@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🛡️ ClipFort
+<img src="static/logo.svg" width="96" height="96" alt="ClipFort Logo" />
+
+# ClipFort
 
 ### *Ultra-Lightweight, Cross-Platform Clipboard Manager & Encrypted Vault*
 
