@@ -64,7 +64,7 @@
   <div data-tauri-drag-region class="flex items-center justify-between mb-2">
     <!-- App Brand & Segmented Mode Switcher -->
     <div class="flex items-center space-x-2">
-      <img src="/logo.png" alt="ClipFort" class="w-5 h-5 rounded-md shadow-xs object-cover select-none pointer-events-none shrink-0" title="ClipFort" />
+      <img src="/logo.svg" alt="ClipFort" class="w-5 h-5 object-contain select-none pointer-events-none shrink-0" title="ClipFort" />
       <div
         class="flex items-center space-x-1 p-0.5 rounded-lg text-xs font-semibold"
       style="

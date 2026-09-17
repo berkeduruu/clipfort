@@ -35,7 +35,7 @@
     try {
       await invoke('open_external_url', { url });
     } catch (err: any) {
-      alert(typeof err === 'string' ? err : 'Link açılamadı');
+      alert(typeof err === 'string' ? err : 'Failed to open link');
     }
   }
 

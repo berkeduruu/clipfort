@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="favShield" x1="4" y1="2" x2="28" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="50%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#1E1B4B"/>
+    </linearGradient>
+    <linearGradient id="favLock" x1="17" y1="19" x2="25" y2="27" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Shield Shape (No background canvas) -->
+  <path d="M 16 2
+           C 21.5 2 27 4.5 27 8.5
+           C 27 18.5 21.5 26 16 30.5
+           C 10.5 26 5 18.5 5 8.5
+           C 5 4.5 10.5 2 16 2 Z"
+        fill="url(#favShield)"/>
+
+  <!-- Inner Clipboard Paper -->
+  <rect x="10.5" y="9.5" width="11" height="14.5" rx="2" fill="#FFFFFF"/>
+
+  <!-- Clip on Top -->
+  <rect x="13" y="8" width="6" height="3" rx="1" fill="#0284C7"/>
+
+  <!-- Mini Content Lines -->
+  <rect x="12" y="13" width="8" height="1.2" rx="0.6" fill="#3B82F6"/>
+  <rect x="12" y="15.5" width="5.5" height="1.2" rx="0.6" fill="#60A5FA"/>
+  <rect x="12" y="18" width="6.5" height="1.2" rx="0.6" fill="#93C5FD"/>
+
+  <!-- Security Padlock on corner -->
+  <path d="M 19 20.5 V 19.5 C 19 18.5 21 18.5 21 19.5 V 20.5" fill="none" stroke="#F59E0B" stroke-width="0.8" stroke-linecap="round"/>
+  <rect x="18" y="20.5" width="4" height="3.5" rx="0.8" fill="url(#favLock)"/>
+</svg>

@@ -43,7 +43,7 @@ pub struct VaultItem {
     #[serde(default = "default_item_type")]
     pub item_type: String, // "text", "password", "file", "note", "link"
     #[serde(default = "default_tab")]
-    pub tab: String, // e.g. "Kişisel Bilgiler", "Siteler & Kanallar"
+    pub tab: String, // e.g. "Personal Info", "Websites & Accounts"
     #[serde(default = "default_group")]
     pub group: String, // e.g. "Personal Data", "Documents", "My Store"
     #[serde(default)]
@@ -249,14 +249,14 @@ impl VaultManager {
                 .truncate(true)
                 .mode(0o600)
                 .open(&self.device_key_file)
-                .map_err(|e| format!("Cihaz anahtarı oluşturulamadı: {}", e))?;
+                .map_err(|e| format!("Failed to create device key: {}", e))?;
             file.write_all(&key)
-                .map_err(|e| format!("Cihaz anahtarı yazılamadı: {}", e))?;
+                .map_err(|e| format!("Failed to write device key: {}", e))?;
         }
         #[cfg(not(unix))]
         {
             fs::write(&self.device_key_file, &key)
-                .map_err(|e| format!("Cihaz anahtarı yazılamadı: {}", e))?;
+                .map_err(|e| format!("Failed to write device key: {}", e))?;
         }
 
         Ok(key)
@@ -324,11 +324,11 @@ impl VaultManager {
 
     fn read_and_decrypt(&self, pin: Option<&str>) -> Result<([u8; 32], [u8; SALT_LEN], bool, VaultData), String> {
         let bytes = fs::read(&self.vault_file)
-            .map_err(|e| format!("Kasa dosyası okunamadı: {}", e))?;
+            .map_err(|e| format!("Failed to read vault file: {}", e))?;
 
         let min_len = MAGIC_LEN + SALT_LEN + NONCE_LEN + 16; // 16 bytes auth tag minimum
         if bytes.len() < min_len {
-            return Err("Kasa dosyası geçersiz veya bozulmuş (dosya boyutu çok küçük).".into());
+            return Err("Vault file is invalid or corrupted (file size too small).".into());
         }
 
         let magic = &bytes[0..MAGIC_LEN];
@@ -336,7 +336,7 @@ impl VaultManager {
         let is_auto_vault = magic == VAULT_MAGIC_AUTO;
 
         if !is_pin_vault && !is_auto_vault {
-            return Err("Geçersiz kasa formatı (sihirli başlık uyuşmuyor).".into());
+            return Err("Invalid vault format (magic header mismatch).".into());
         }
 
         let mut salt = [0u8; SALT_LEN];
@@ -350,10 +350,10 @@ impl VaultManager {
         let ciphertext = &bytes[nonce_start + NONCE_LEN..];
 
         let key = if is_pin_vault {
-            let p = pin.ok_or_else(|| "Bu kasa PIN ile kilitlenmiştir. Lütfen PIN girin.".to_string())?;
+            let p = pin.ok_or_else(|| "This vault is PIN-locked. Please enter your PIN.".to_string())?;
             let trimmed = p.trim();
             if trimmed.is_empty() {
-                return Err("Lütfen PIN kodunuzu girin.".into());
+                return Err("Please enter your PIN.".into());
             }
             Self::derive_key(trimmed, &salt)
         } else {
@@ -367,14 +367,14 @@ impl VaultManager {
             .decrypt(nonce, ciphertext)
             .map_err(|_| {
                 if is_pin_vault {
-                    "Hatalı PIN kodu! Kasa açılamadı.".to_string()
+                    "Incorrect PIN! Failed to unlock vault.".to_string()
                 } else {
-                    "Cihaz şifreleme anahtarı doğrulanamadı! Kasa çözülemedi.".to_string()
+                    "Device encryption key verification failed! Could not decrypt vault.".to_string()
                 }
             })?;
 
         let mut data: VaultData = serde_json::from_slice(&plaintext)
-            .map_err(|e| format!("Kasa verisi ayrıştırılamadı: {}", e))?;
+            .map_err(|e| format!("Failed to parse vault data: {}", e))?;
 
         if data.tabs.is_empty() {
             data.tabs = default_tabs();
@@ -385,7 +385,7 @@ impl VaultManager {
 
     pub fn init_vault(&self, pin: Option<String>) -> Result<(), String> {
         if self.is_initialized() {
-            return Err("Kasa zaten mevcut! Sıfırlamak için önce eski dosyayı silmelisiniz.".into());
+            return Err("Vault already exists! Delete the existing file to reset.".into());
         }
 
         let pin_trimmed = pin.as_deref().map(|s| s.trim()).filter(|s| !s.is_empty());
@@ -393,7 +393,7 @@ impl VaultManager {
         let (key, salt, magic, has_pin) = match pin_trimmed {
             Some(p) => {
                 if p.len() < 4 {
-                    return Err("PIN kodu en az 4 karakter olmalıdır.".into());
+                    return Err("PIN must be at least 4 characters.".into());
                 }
                 let mut salt = [0u8; SALT_LEN];
                 rand::thread_rng().fill_bytes(&mut salt);
@@ -425,7 +425,7 @@ impl VaultManager {
 
     pub fn unlock(&self, pin: &str) -> Result<Vec<VaultItem>, String> {
         if !self.is_initialized() {
-            return Err("Kasa henüz oluşturulmamış.".into());
+            return Err("Vault has not been created yet.".into());
         }
 
         let (key, salt, has_pin, data) = self.read_and_decrypt(Some(pin))?;
@@ -444,7 +444,7 @@ impl VaultManager {
 
     pub fn auto_unlock(&self) -> Result<Vec<VaultItem>, String> {
         if !self.is_initialized() {
-            return Err("Kasa henüz oluşturulmamış.".into());
+            return Err("Vault has not been created yet.".into());
         }
 
         let (key, salt, has_pin, data) = self.read_and_decrypt(None)?;
@@ -467,7 +467,7 @@ impl VaultManager {
             return Ok(());
         }
         let bytes = fs::read(&path)
-            .map_err(|e| format!("Ek dosya okunamadı: {}", e))?;
+            .map_err(|e| format!("Failed to read attached file: {}", e))?;
         if bytes.len() < NONCE_LEN + 16 {
             return Ok(());
         }
@@ -478,27 +478,27 @@ impl VaultManager {
         let ciphertext = &bytes[NONCE_LEN..];
 
         let old_cipher = Aes256Gcm::new_from_slice(old_key)
-            .map_err(|e| format!("Eski anahtar hatası: {}", e))?;
+            .map_err(|e| format!("Old key error: {}", e))?;
         let plaintext = old_cipher
             .decrypt(old_nonce, ciphertext)
-            .map_err(|e| format!("Dosya şifresi çözülemedi: {}", e))?;
+            .map_err(|e| format!("Failed to decrypt file: {}", e))?;
 
         let new_cipher = Aes256Gcm::new_from_slice(new_key)
-            .map_err(|e| format!("Yeni anahtar hatası: {}", e))?;
+            .map_err(|e| format!("New key error: {}", e))?;
         let mut new_nonce_bytes = [0u8; NONCE_LEN];
         rand::thread_rng().fill_bytes(&mut new_nonce_bytes);
         let new_nonce = Nonce::from_slice(&new_nonce_bytes);
 
         let new_ciphertext = new_cipher
             .encrypt(new_nonce, plaintext.as_ref())
-            .map_err(|e| format!("Yeni dosya şifreleme hatası: {}", e))?;
+            .map_err(|e| format!("New file encryption error: {}", e))?;
 
         let mut payload = Vec::with_capacity(NONCE_LEN + new_ciphertext.len());
         payload.extend_from_slice(&new_nonce_bytes);
         payload.extend_from_slice(&new_ciphertext);
 
         fs::write(&path, payload)
-            .map_err(|e| format!("Yeni dosya yazılamadı: {}", e))?;
+            .map_err(|e| format!("Failed to write re-encrypted file: {}", e))?;
 
         Ok(())
     }
@@ -506,13 +506,13 @@ impl VaultManager {
     pub fn set_pin(&self, new_pin: &str) -> Result<(), String> {
         let new_pin = new_pin.trim();
         if new_pin.len() < 4 {
-            return Err("PIN kodu en az 4 karakter olmalıdır.".into());
+            return Err("PIN must be at least 4 characters.".into());
         }
 
         let mut session_guard = self.session.lock().unwrap();
         let session = session_guard
             .as_mut()
-            .ok_or_else(|| "Kasa kilitli. Lütfen önce kasayı açın.".to_string())?;
+            .ok_or_else(|| "Vault is locked. Please unlock first.".to_string())?;
 
         let old_key = session.key;
         let mut new_salt = [0u8; SALT_LEN];
@@ -545,7 +545,7 @@ impl VaultManager {
         let mut session_guard = self.session.lock().unwrap();
         let session = session_guard
             .as_mut()
-            .ok_or_else(|| "Kasa kilitli. Lütfen önce kasayı açın.".to_string())?;
+            .ok_or_else(|| "Vault is locked. Please unlock first.".to_string())?;
 
         let old_key = session.key;
         let new_key = self.get_or_create_device_key()?;
@@ -583,7 +583,7 @@ impl VaultManager {
         let session_guard = self.session.lock().unwrap();
         match &*session_guard {
             Some(session) => Ok(session.data.items.clone()),
-            None => Err("Kasa kilitli. Lütfen önce kasayı açın.".into()),
+            None => Err("Vault is locked. Please unlock first.".into()),
         }
     }
 
@@ -598,13 +598,13 @@ impl VaultManager {
     pub fn add_tab(&self, name: String) -> Result<Vec<String>, String> {
         let name = name.trim().to_string();
         if name.is_empty() {
-            return Err("Sekme adı boş olamaz.".into());
+            return Err("Tab name cannot be empty.".into());
         }
 
         let mut session_guard = self.session.lock().unwrap();
         let session = session_guard
             .as_mut()
-            .ok_or_else(|| "Kasa kilitli. Lütfen önce kasayı açın.".to_string())?;
+            .ok_or_else(|| "Vault is locked. Please unlock first.".to_string())?;
 
         if session.data.tabs.contains(&name) {
             return Ok(session.data.tabs.clone());
@@ -620,7 +620,7 @@ impl VaultManager {
         let mut session_guard = self.session.lock().unwrap();
         let session = session_guard
             .as_mut()
-            .ok_or_else(|| "Kasa kilitli. Lütfen önce kasayı açın.".to_string())?;
+            .ok_or_else(|| "Vault is locked. Please unlock first.".to_string())?;
 
         session.data.tabs.retain(|t| t != &name);
         if session.data.tabs.is_empty() {
@@ -636,14 +636,14 @@ impl VaultManager {
         let mut session_guard = self.session.lock().unwrap();
         let session = session_guard
             .as_mut()
-            .ok_or_else(|| "Kasa kilitli. Lütfen önce kasayı açın.".to_string())?;
+            .ok_or_else(|| "Vault is locked. Please unlock first.".to_string())?;
 
         let item = session
             .data
             .items
             .iter_mut()
             .find(|i| i.id == id)
-            .ok_or_else(|| "Öğe bulunamadı.".to_string())?;
+            .ok_or_else(|| "Item not found.".to_string())?;
 
         item.pinned = !item.pinned;
         let new_state = item.pinned;
@@ -662,7 +662,7 @@ impl VaultManager {
         let limit_bytes = (max_size_mb as usize) * 1024 * 1024;
         if file_bytes.len() > limit_bytes {
             return Err(format!(
-                "Dosya boyutu {} MB sınırını aşıyor! (Seçilen dosya: {:.2} MB)",
+                "File exceeds the {} MB size limit! (Selected file: {:.2} MB)",
                 max_size_mb,
                 file_bytes.len() as f64 / 1_048_576.0
             ));
@@ -671,7 +671,7 @@ impl VaultManager {
         let session_guard = self.session.lock().unwrap();
         let session = session_guard
             .as_ref()
-            .ok_or_else(|| "Kasa kilitli. Lütfen önce kasayı açın.".to_string())?;
+            .ok_or_else(|| "Vault is locked. Please unlock first.".to_string())?;
 
         let cipher = Aes256Gcm::new_from_slice(&session.key)
             .map_err(|e| format!("Cipher error: {}", e))?;
@@ -682,7 +682,7 @@ impl VaultManager {
 
         let ciphertext = cipher
             .encrypt(nonce, file_bytes)
-            .map_err(|e| format!("Dosya şifreleme hatası: {}", e))?;
+            .map_err(|e| format!("File encryption error: {}", e))?;
 
         let mut payload = Vec::with_capacity(NONCE_LEN + ciphertext.len());
         payload.extend_from_slice(&nonce_bytes);
@@ -692,7 +692,7 @@ impl VaultManager {
         let dest = self.vault_files_dir.join(format!("{}.enc", file_id));
 
         fs::write(&dest, payload)
-            .map_err(|e| format!("Şifreli dosya diske yazılamadı: {}", e))?;
+            .map_err(|e| format!("Failed to write encrypted file to disk: {}", e))?;
 
         Ok((file_id, file_bytes.len()))
     }
@@ -700,14 +700,14 @@ impl VaultManager {
     fn read_encrypted_file_internal(&self, key: &[u8; 32], file_id: &str) -> Result<Vec<u8>, String> {
         let path = self.vault_files_dir.join(format!("{}.enc", file_id));
         if !path.exists() {
-            return Err("Şifreli dosya diskte bulunamadı.".into());
+            return Err("Encrypted file not found on disk.".into());
         }
 
         let bytes = fs::read(&path)
-            .map_err(|e| format!("Şifreli dosya okunamadı: {}", e))?;
+            .map_err(|e| format!("Failed to read encrypted file: {}", e))?;
 
         if bytes.len() < NONCE_LEN + 16 {
-            return Err("Dosya hasarlı veya geçersiz format.".into());
+            return Err("File is corrupted or has invalid format.".into());
         }
 
         let mut nonce_bytes = [0u8; NONCE_LEN];
@@ -720,7 +720,7 @@ impl VaultManager {
 
         let plaintext = cipher
             .decrypt(nonce, ciphertext)
-            .map_err(|e| format!("Dosya şifresi çözülemedi: {}", e))?;
+            .map_err(|e| format!("Failed to decrypt file: {}", e))?;
 
         Ok(plaintext)
     }
@@ -730,7 +730,7 @@ impl VaultManager {
         let session_guard = self.session.lock().unwrap();
         let session = session_guard
             .as_ref()
-            .ok_or_else(|| "Kasa kilitli. Lütfen önce kasayı açın.".to_string())?;
+            .ok_or_else(|| "Vault is locked. Please unlock first.".to_string())?;
 
         self.read_encrypted_file_internal(&session.key, file_id)
     }
@@ -775,13 +775,13 @@ impl VaultManager {
                     if final_file_name.is_none() {
                         final_file_name = src_path.file_name().map(|n| n.to_string_lossy().to_string());
                     }
-                    let resolved_name = final_file_name.clone().unwrap_or_else(|| "dosya".into());
+                    let resolved_name = final_file_name.clone().unwrap_or_else(|| "file".into());
 
                     if copy_to_vault == Some(true) {
                         // Copy file to vault_storage_dir
                         let dest_path = self.vault_storage_dir.join(&resolved_name);
                         let _ = fs::copy(&src_path, &dest_path)
-                            .map_err(|e| format!("Dosya kasa klasörüne kopyalanamadı: {}", e))?;
+                            .map_err(|e| format!("Failed to copy file to vault folder: {}", e))?;
                         #[cfg(unix)]
                         {
                             use std::os::unix::fs::PermissionsExt;
@@ -793,20 +793,20 @@ impl VaultManager {
                         final_file_path = Some(src_path.to_string_lossy().to_string());
                     }
                 } else {
-                    return Err("Belirtilen dosya yolu diskte bulunamadı.".into());
+                    return Err("Specified file path not found on disk.".into());
                 }
             } else if let Some(bytes) = file_bytes {
                 let limit_bytes = (max_size_mb as usize) * 1024 * 1024;
                 if bytes.len() > limit_bytes {
                     return Err(format!(
-                        "Dosya boyutu {} MB sınırını aşıyor! (Seçilen dosya: {:.2} MB)",
+                        "File exceeds the {} MB size limit! (Selected file: {:.2} MB)",
                         max_size_mb,
                         bytes.len() as f64 / 1_048_576.0
                     ));
                 }
-                let resolved_name = final_file_name.clone().unwrap_or_else(|| format!("dosya_{}.dat", Uuid::new_v4()));
+                let resolved_name = final_file_name.clone().unwrap_or_else(|| format!("file_{}.dat", Uuid::new_v4()));
                 let dest_path = self.vault_storage_dir.join(&resolved_name);
-                fs::write(&dest_path, &bytes).map_err(|e| format!("Dosya kaydedilemedi: {}", e))?;
+                fs::write(&dest_path, &bytes).map_err(|e| format!("Failed to save file: {}", e))?;
                 #[cfg(unix)]
                 {
                     use std::os::unix::fs::PermissionsExt;
@@ -825,7 +825,7 @@ impl VaultManager {
         let mut session_guard = self.session.lock().unwrap();
         let session = session_guard
             .as_mut()
-            .ok_or_else(|| "Kasa kilitli. Lütfen önce kasayı açın.".to_string())?;
+            .ok_or_else(|| "Vault is locked. Please unlock first.".to_string())?;
 
         let now = Utc::now().timestamp_millis();
 
@@ -850,7 +850,7 @@ impl VaultManager {
 
                 existing.clone()
             } else {
-                return Err("Güncellenecek öğe bulunamadı.".into());
+                return Err("Item to update not found.".into());
             }
         } else {
             // Create
@@ -884,7 +884,7 @@ impl VaultManager {
         let mut session_guard = self.session.lock().unwrap();
         let session = session_guard
             .as_mut()
-            .ok_or_else(|| "Kasa kilitli. Lütfen önce kasayı açın.".to_string())?;
+            .ok_or_else(|| "Vault is locked. Please unlock first.".to_string())?;
 
         let (file_to_delete, path_to_delete) = session
             .data
@@ -898,7 +898,7 @@ impl VaultManager {
         session.data.items.retain(|i| i.id != id);
 
         if session.data.items.len() == initial_len {
-            return Err("Silinecek öğe bulunamadı.".into());
+            return Err("Item to delete not found.".into());
         }
 
         if let Some(fid) = file_to_delete {
@@ -922,7 +922,7 @@ impl VaultManager {
         let session_guard = self.session.lock().unwrap();
         let session = session_guard
             .as_ref()
-            .ok_or_else(|| "Kasa kilitli. Lütfen önce kasayı açın.".to_string())?;
+            .ok_or_else(|| "Vault is locked. Please unlock first.".to_string())?;
 
         session
             .data
@@ -930,26 +930,26 @@ impl VaultManager {
             .iter()
             .find(|i| i.id == id)
             .map(|i| i.secret.clone())
-            .ok_or_else(|| "Öğe bulunamadı.".to_string())
+            .ok_or_else(|| "Item not found.".to_string())
     }
 
     pub fn get_file_info_and_path(&self, id: &str) -> Result<(String, PathBuf, Vec<u8>), String> {
         let session_guard = self.session.lock().unwrap();
         let session = session_guard
             .as_ref()
-            .ok_or_else(|| "Kasa kilitli. Lütfen önce kasayı açın.".to_string())?;
+            .ok_or_else(|| "Vault is locked. Please unlock first.".to_string())?;
 
         let item = session
             .data
             .items
             .iter()
             .find(|i| i.id == id)
-            .ok_or_else(|| "Öğe bulunamadı.".to_string())?;
+            .ok_or_else(|| "Item not found.".to_string())?;
 
         let file_name = item
             .file_name
             .clone()
-            .unwrap_or_else(|| format!("dosya_{}", id));
+            .unwrap_or_else(|| format!("file_{}", id));
 
         // 1. Check if item has file_path that exists
         if let Some(ref path_str) = item.file_path {
@@ -980,7 +980,7 @@ impl VaultManager {
             return Ok((file_name, storage_path, bytes));
         }
 
-        Err("Bu öğeye ait dosya bulunamadı veya diskten silinmiş.".to_string())
+        Err("File for this item not found or has been deleted from disk.".to_string())
     }
 
     pub fn get_file_info_and_bytes(&self, id: &str) -> Result<(String, Vec<u8>), String> {
@@ -993,11 +993,11 @@ impl VaultManager {
         let b64 = &base64::engine::general_purpose::STANDARD;
 
         if !self.vault_file.exists() {
-            return Err("Yedeklenecek kasa dosyası bulunamadı.".into());
+            return Err("Vault file not found for backup.".into());
         }
 
         let vault_enc_bytes = fs::read(&self.vault_file)
-            .map_err(|e| format!("Kasa dosyası okunamadı: {}", e))?;
+            .map_err(|e| format!("Failed to read vault file: {}", e))?;
 
         let mut files = Vec::new();
         if self.vault_files_dir.exists() {
@@ -1042,7 +1042,7 @@ impl VaultManager {
         };
 
         serde_json::to_string_pretty(&bundle)
-            .map_err(|e| format!("Yedek verisi serileştirilemedi: {}", e))
+            .map_err(|e| format!("Failed to serialize backup data: {}", e))
     }
 
     pub fn restore_backup_bundle(&self, backup_json: &str) -> Result<(), String> {
@@ -1050,13 +1050,13 @@ impl VaultManager {
         let b64 = &base64::engine::general_purpose::STANDARD;
 
         let bundle: VaultBackupData = serde_json::from_str(backup_json)
-            .map_err(|e| format!("Geçersiz yedek dosyası formatı: {}", e))?;
+            .map_err(|e| format!("Invalid backup file format: {}", e))?;
 
         let new_vault_bytes = b64.decode(&bundle.vault_enc_base64)
-            .map_err(|e| format!("Yedek kasa verisi çözülemedi: {}", e))?;
+            .map_err(|e| format!("Failed to decode backup vault data: {}", e))?;
 
         if new_vault_bytes.len() < MAGIC_LEN + SALT_LEN + NONCE_LEN + 16 {
-            return Err("Yedek kasa dosyası bozuk veya eksik.".into());
+            return Err("Backup vault file is corrupted or incomplete.".into());
         }
 
         // 1. Create a backup of current vault.enc as vault.enc.pre_restore_bak if exists
@@ -1067,7 +1067,7 @@ impl VaultManager {
 
         // 2. Write new vault.enc
         fs::write(&self.vault_file, &new_vault_bytes)
-            .map_err(|e| format!("Kasa dosyası yazılamadı: {}", e))?;
+            .map_err(|e| format!("Failed to write vault file: {}", e))?;
 
         // 3. Restore vault_files
         let _ = fs::create_dir_all(&self.vault_files_dir);
@@ -1126,10 +1126,10 @@ mod tests {
         let saved = manager
             .save_item(
                 None,
-                "Kimlik Belgesi".into(),
+                "ID Document".into(),
                 "TC: 12345678901".into(),
                 "file".into(),
-                "Kişisel Bilgiler".into(),
+                "Personal Info".into(),
                 "Documents".into(),
                 true,
                 Some("kimlik.pdf".into()),
@@ -1137,11 +1137,11 @@ mod tests {
                 None,
                 None,
                 20,
-                Some("Resmi kimlik taraması".into()),
+                Some("Official ID scan".into()),
             )
             .expect("Save item failed");
 
-        assert_eq!(saved.title, "Kimlik Belgesi");
+        assert_eq!(saved.title, "ID Document");
         assert!(saved.pinned);
         assert!(saved.file_id.is_some());
 
@@ -1149,10 +1149,10 @@ mod tests {
         let large_bytes = vec![0u8; 2 * 1024 * 1024]; // 2 MB
         let rejected = manager.save_item(
             None,
-            "Büyük Dosya".into(),
+            "Large File".into(),
             "".into(),
             "file".into(),
-            "Kişisel Bilgiler".into(),
+            "Personal Info".into(),
             "Documents".into(),
             false,
             Some("large.zip".into()),
@@ -1183,8 +1183,8 @@ mod tests {
         assert!(!is_pinned); // Was true, now false
 
         // 6. Test tab management
-        let tabs = manager.add_tab("Finans".into()).expect("Add tab failed");
-        assert!(tabs.contains(&"Finans".to_string()));
+        let tabs = manager.add_tab("Finance".into()).expect("Add tab failed");
+        assert!(tabs.contains(&"Finance".to_string()));
 
         // Clean up
         let _ = fs::remove_dir_all(&temp_dir);
@@ -1210,11 +1210,11 @@ mod tests {
         let doc_content = b"Secret Auto Encrypted Text Document".to_vec();
         let saved = manager.save_item(
             None,
-            "Otomatik Not".into(),
-            "gizli_metin_123".into(),
+            "Auto Note".into(),
+            "secret_text_123".into(),
             "file".into(),
-            "Kişisel Bilgiler".into(),
-            "Genel".into(),
+            "Personal Info".into(),
+            "General".into(),
             false,
             Some("gizli.txt".into()),
             Some(doc_content.clone()),
@@ -1231,7 +1231,7 @@ mod tests {
 
         let items = manager.auto_unlock().expect("Auto unlock failed");
         assert_eq!(items.len(), 1);
-        assert_eq!(items[0].title, "Otomatik Not");
+        assert_eq!(items[0].title, "Auto Note");
 
         let decrypted_file = manager.read_encrypted_file(saved.file_id.as_ref().unwrap()).unwrap();
         assert_eq!(decrypted_file, doc_content);
@@ -1251,7 +1251,7 @@ mod tests {
         // unlock with correct PIN succeeds
         let items_after_pin = manager.unlock("9876").expect("Unlock with PIN failed");
         assert_eq!(items_after_pin.len(), 1);
-        assert_eq!(items_after_pin[0].title, "Otomatik Not");
+        assert_eq!(items_after_pin[0].title, "Auto Note");
 
         // Decrypted file still works after rekey!
         let rekeyed_file = manager.read_encrypted_file(saved.file_id.as_ref().unwrap()).unwrap();
@@ -1289,11 +1289,11 @@ mod tests {
         // 1. Test Shortcut Mode (copy_to_vault = false)
         let shortcut_item = manager.save_item(
             None,
-            "Kısayol Belge".into(),
+            "Shortcut Document".into(),
             "".into(),
             "file".into(),
-            "Kişisel Bilgiler".into(),
-            "Genel".into(),
+            "Personal Info".into(),
+            "General".into(),
             false,
             Some("external_doc.pdf".into()),
             None,
@@ -1312,11 +1312,11 @@ mod tests {
         // 2. Test Copy to Vault Storage Mode (copy_to_vault = true)
         let copied_item = manager.save_item(
             None,
-            "Kopya Belge".into(),
+            "Copied Document".into(),
             "".into(),
             "file".into(),
-            "Kişisel Bilgiler".into(),
-            "Genel".into(),
+            "Personal Info".into(),
+            "General".into(),
             false,
             Some("vault_copied.pdf".into()),
             None,
@@ -1359,11 +1359,11 @@ mod tests {
         // Add a secret
         manager.save_item(
             None,
-            "Gizli Sır".into(),
-            "Çok Gizli Token".into(),
+            "Secret Note".into(),
+            "Top Secret Token".into(),
             "password".into(),
-            "Kişisel Bilgiler".into(),
-            "Kişisel Veriler".into(),
+            "Personal Info".into(),
+            "Personal Data".into(),
             true,
             None,
             None,
@@ -1389,7 +1389,7 @@ mod tests {
         // 3. Unlock restored vault with original PIN 9999
         let restored_items = target_manager.unlock("9999").expect("Unlock restored vault failed");
         assert_eq!(restored_items.len(), 1);
-        assert_eq!(restored_items[0].title, "Gizli Sır");
+        assert_eq!(restored_items[0].title, "Secret Note");
 
         let _ = fs::remove_dir_all(&temp_dir);
         let _ = fs::remove_dir_all(&temp_dir2);

@@ -118,7 +118,7 @@
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("Lütfen 5 MB'tan küçük bir görsel seçin.");
+      alert("Please select an image smaller than 5 MB.");
       return;
     }
 
@@ -212,7 +212,7 @@
       <!-- Header -->
       <div class="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
         <h3 class="font-semibold text-slate-800 flex items-center gap-2 text-xs">
-          <img src="/logo.png" alt="ClipFort" class="w-4 h-4 rounded-sm shadow-xs object-cover" />
+          <img src="/logo.svg" alt="ClipFort" class="w-4 h-4 object-contain select-none pointer-events-none shrink-0" />
           ClipFort Settings
         </h3>
         <button
@@ -446,7 +446,7 @@
         {:else if activeTab === 'appearance'}
           <!-- APPEARANCE & THEME TAB -->
 
-          <!-- 1. Theme Presets / Şablonlar -->
+          <!-- 1. Theme Presets -->
           <div>
             <div class="flex items-center justify-between mb-2">
               <span class="font-medium text-slate-800 flex items-center gap-1.5">

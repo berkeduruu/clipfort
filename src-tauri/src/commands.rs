@@ -229,7 +229,7 @@ pub fn save_vault_item(
     let file_bytes = if let Some(b64) = file_base64 {
         let bytes = base64::engine::general_purpose::STANDARD
             .decode(&b64)
-            .map_err(|e| format!("Base64 ayrıştırma hatası: {}", e))?;
+            .map_err(|e| format!("Base64 parsing error: {}", e))?;
         Some(bytes)
     } else {
         None
@@ -305,7 +305,7 @@ pub fn save_current_window_size(
         storage.save_settings(settings)?;
         Ok((width, height))
     } else {
-        Err("Pencere bulunamadı.".into())
+        Err("Window not found.".into())
     }
 }
 
@@ -327,7 +327,7 @@ pub fn apply_window_size(
         }
         Ok((width, height))
     } else {
-        Err("Pencere bulunamadı.".into())
+        Err("Window not found.".into())
     }
 }
 
@@ -380,7 +380,7 @@ pub fn copy_vault_secret(
 ) -> Result<(), String> {
     let secret = vault.get_secret(&id)?;
     let mut clipboard =
-        Clipboard::new().map_err(|e| format!("Panoya erişilemedi: {}", e))?;
+        Clipboard::new().map_err(|e| format!("Failed to access clipboard: {}", e))?;
 
     // Mark secret hash so clipboard monitor will NEVER record this secret in public history!
     let secret_hash = crate::clipboard_monitor::compute_text_hash(&secret);
@@ -388,7 +388,7 @@ pub fn copy_vault_secret(
     IS_INTERNAL_COPY.store(true, Ordering::SeqCst);
     clipboard
         .set_text(&secret)
-        .map_err(|e| format!("Şifre panoya kopyalanamadı: {}", e))?;
+        .map_err(|e| format!("Failed to copy secret to clipboard: {}", e))?;
 
     let settings = storage.get_settings();
     if settings.close_on_copy {
@@ -416,7 +416,7 @@ pub struct PickedFileInfo {
 pub fn pick_vault_file() -> Result<Option<PickedFileInfo>, String> {
     println!("[Vault File] pick_vault_file invoked!");
     let mut cmd = std::process::Command::new("zenity");
-    cmd.args(["--file-selection", "--title=Güvenli Kasaya Belge/Dosya Seç"]);
+    cmd.args(["--file-selection", "--title=Select File for Secure Vault"]);
     if let Ok(display) = std::env::var("DISPLAY") {
         cmd.env("DISPLAY", display);
     }
@@ -425,7 +425,7 @@ pub fn pick_vault_file() -> Result<Option<PickedFileInfo>, String> {
             let path_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
             if !path_str.is_empty() {
                 let p = std::path::PathBuf::from(&path_str);
-                let name = p.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| "dosya".into());
+                let name = p.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| "file".into());
                 let size_bytes = std::fs::metadata(&p).map(|m| m.len()).unwrap_or(0);
                 return Ok(Some(PickedFileInfo {
                     path: path_str,
@@ -439,14 +439,14 @@ pub fn pick_vault_file() -> Result<Option<PickedFileInfo>, String> {
 
     // Fallback: kdialog (KDE)
     if let Ok(output) = std::process::Command::new("kdialog")
-        .args(["--getopenfilename", "--title", "Güvenli Kasaya Belge/Dosya Seç"])
+        .args(["--getopenfilename", "--title", "Select File for Secure Vault"])
         .output()
     {
         if output.status.success() {
             let path_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
             if !path_str.is_empty() {
                 let p = std::path::PathBuf::from(&path_str);
-                let name = p.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| "dosya".into());
+                let name = p.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| "file".into());
                 let size_bytes = std::fs::metadata(&p).map(|m| m.len()).unwrap_or(0);
                 return Ok(Some(PickedFileInfo {
                     path: path_str,
@@ -458,7 +458,7 @@ pub fn pick_vault_file() -> Result<Option<PickedFileInfo>, String> {
         return Ok(None);
     }
 
-    Err("Yerel dosya seçici penceresi başlatılamadı.".into())
+    Err("Failed to open file picker dialog.".into())
 }
 
 #[tauri::command]
@@ -607,7 +607,7 @@ pub fn export_vault_file(
     let _ = fs::create_dir_all(&downloads_dir);
 
     let path = std::path::Path::new(&file_name);
-    let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("dosya");
+    let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("file");
     let ext = path.extension().and_then(|e| e.to_str());
 
     let mut dest_path = downloads_dir.join(&file_name);
@@ -623,12 +623,12 @@ pub fn export_vault_file(
 
     if target_path.exists() {
         fs::copy(&target_path, &dest_path)
-            .map_err(|e| format!("Dosya kopyalanamadı: {}", e))?;
+            .map_err(|e| format!("Failed to copy file: {}", e))?;
     } else if !bytes.is_empty() {
         fs::write(&dest_path, &bytes)
-            .map_err(|e| format!("Dosya kaydedilemedi: {}", e))?;
+            .map_err(|e| format!("Failed to save file: {}", e))?;
     } else {
-        return Err("Dışa aktarılacak dosya bulunamadı.".into());
+        return Err("File to export not found.".into());
     }
 
     println!("[Vault File] exported successfully to: {:?}", dest_path);
@@ -644,7 +644,7 @@ pub fn open_vault_file(
     println!("[Vault File] open_vault_file: id={}, path={:?}", id, target_path);
 
     if !target_path.exists() {
-        return Err("Açılacak dosya diskte bulunamadı.".into());
+        return Err("File to open not found on disk.".into());
     }
 
     #[cfg(target_os = "linux")]
@@ -652,13 +652,13 @@ pub fn open_vault_file(
         let _ = std::process::Command::new("xdg-open")
             .arg(&target_path)
             .spawn()
-            .map_err(|e| format!("Dosya açılamadı (xdg-open): {}", e))?;
+            .map_err(|e| format!("Failed to open file (xdg-open): {}", e))?;
     }
 
     #[cfg(not(target_os = "linux"))]
     {
         let _ = tauri_plugin_opener::open_path(&target_path, None::<&str>)
-            .map_err(|e| format!("Dosya açılamadı: {:?}", e))?;
+            .map_err(|e| format!("Failed to open file: {:?}", e))?;
     }
 
     Ok(())
@@ -668,7 +668,7 @@ pub fn open_vault_file(
 pub fn open_external_url(url: String) -> Result<(), String> {
     let trimmed = url.trim();
     if !trimmed.starts_with("http://") && !trimmed.starts_with("https://") {
-        return Err("Geçersiz web adresi (http:// veya https:// ile başlamalı).".into());
+        return Err("Invalid URL (must start with http:// or https://).".into());
     }
 
     #[cfg(target_os = "linux")]
@@ -676,13 +676,13 @@ pub fn open_external_url(url: String) -> Result<(), String> {
         let _ = std::process::Command::new("xdg-open")
             .arg(trimmed)
             .spawn()
-            .map_err(|e| format!("Tarayıcı açılamadı (xdg-open): {}", e))?;
+            .map_err(|e| format!("Failed to open browser (xdg-open): {}", e))?;
     }
 
     #[cfg(not(target_os = "linux"))]
     {
         let _ = tauri_plugin_opener::open_url(trimmed, None::<&str>)
-            .map_err(|e| format!("Tarayıcı açılamadı: {:?}", e))?;
+            .map_err(|e| format!("Failed to open browser: {:?}", e))?;
     }
 
     Ok(())
@@ -704,16 +704,16 @@ pub fn export_clipboard_history(
 
     let (filename, content) = if is_markdown {
         let mut md = String::new();
-        md.push_str("# Pano Geçmişi\n\n");
-        md.push_str(&format!("*Dışa Aktarılma Tarihi: {}*\n", chrono::Local::now().format("%d.%m.%Y %H:%M:%S")));
-        md.push_str(&format!("*Toplam Öğe: {}*\n\n---\n\n", items.len()));
+        md.push_str("# Clipboard History\n\n");
+        md.push_str(&format!("*Exported on: {}*\n", chrono::Local::now().format("%Y-%m-%d %H:%M:%S")));
+        md.push_str(&format!("*Total Items: {}*\n\n---\n\n", items.len()));
 
         for (idx, item) in items.iter().enumerate() {
             let item_date = chrono::DateTime::from_timestamp_millis(item.timestamp)
-                .map(|dt| dt.with_timezone(&chrono::Local).format("%d.%m.%Y %H:%M:%S").to_string())
+                .map(|dt| dt.with_timezone(&chrono::Local).format("%Y-%m-%d %H:%M:%S").to_string())
                 .unwrap_or_else(|| "-".to_string());
 
-            let pin_badge = if item.pinned { " [📌 Sabitli]" } else { "" };
+            let pin_badge = if item.pinned { " [📌 Pinned]" } else { "" };
             md.push_str(&format!("### {}. {}{} ({})\n\n", idx + 1, item.item_type.to_uppercase(), pin_badge, item_date));
 
             if item.item_type == "text" {
@@ -721,29 +721,29 @@ pub fn export_clipboard_history(
                 md.push_str(&item.content);
                 md.push_str("\n```\n\n");
             } else if item.item_type == "image" {
-                md.push_str(&format!("*Görsel Dosyası: {}*\n", item.content));
+                md.push_str(&format!("*Image File: {}*\n", item.content));
                 if let (Some(w), Some(h)) = (item.image_width, item.image_height) {
-                    md.push_str(&format!("*Boyut: {}x{} px*\n\n", w, h));
+                    md.push_str(&format!("*Size: {}x{} px*\n\n", w, h));
                 }
             }
         }
         (format!("clipboard_history_{}.md", now_str), md)
     } else {
         let mut txt = String::new();
-        txt.push_str(&format!("PANO GEÇMİŞİ - {}\n", chrono::Local::now().format("%d.%m.%Y %H:%M:%S")));
-        txt.push_str(&format!("Toplam Öğe: {}\n", items.len()));
+        txt.push_str(&format!("CLIPBOARD HISTORY - {}\n", chrono::Local::now().format("%Y-%m-%d %H:%M:%S")));
+        txt.push_str(&format!("Total Items: {}\n", items.len()));
         txt.push_str("========================================================\n\n");
 
         for (idx, item) in items.iter().enumerate() {
             let item_date = chrono::DateTime::from_timestamp_millis(item.timestamp)
-                .map(|dt| dt.with_timezone(&chrono::Local).format("%d.%m.%Y %H:%M:%S").to_string())
+                .map(|dt| dt.with_timezone(&chrono::Local).format("%Y-%m-%d %H:%M:%S").to_string())
                 .unwrap_or_else(|| "-".to_string());
 
             txt.push_str(&format!("[#{}] {} ({})\n", idx + 1, item.item_type.to_uppercase(), item_date));
             if item.item_type == "text" {
                 txt.push_str(&item.content);
             } else {
-                txt.push_str(&format!("[Görsel: {}]", item.content));
+                txt.push_str(&format!("[Image: {}]", item.content));
             }
             txt.push_str("\n--------------------------------------------------------\n\n");
         }
@@ -752,7 +752,7 @@ pub fn export_clipboard_history(
 
     let dest_path = downloads_dir.join(filename);
     fs::write(&dest_path, content.as_bytes())
-        .map_err(|e| format!("Dosya kaydedilemedi: {}", e))?;
+        .map_err(|e| format!("Failed to save file: {}", e))?;
 
     Ok(dest_path.to_string_lossy().to_string())
 }
@@ -775,7 +775,7 @@ pub async fn export_vault_backup(vault: State<'_, SharedVault>) -> Result<String
             .arg("--save")
             .arg("--confirm-overwrite")
             .arg(format!("--filename={}", default_dest.to_string_lossy()))
-            .arg("--title=Kasa Yedeğini Kaydedin");
+            .arg("--title=Save Vault Backup");
         if let Ok(display) = std::env::var("DISPLAY") {
             cmd.env("DISPLAY", display);
         }
@@ -797,7 +797,7 @@ pub async fn export_vault_backup(vault: State<'_, SharedVault>) -> Result<String
     };
 
     fs::write(&dest_path, backup_json.as_bytes())
-        .map_err(|e| format!("Yedek dosyası kaydedilemedi: {}", e))?;
+        .map_err(|e| format!("Failed to save backup file: {}", e))?;
 
     Ok(dest_path.to_string_lossy().to_string())
 }
@@ -806,32 +806,32 @@ pub async fn export_vault_backup(vault: State<'_, SharedVault>) -> Result<String
 pub async fn restore_vault_backup(vault: State<'_, SharedVault>) -> Result<String, String> {
     let mut cmd = std::process::Command::new("zenity");
     cmd.arg("--file-selection")
-        .arg("--title=Geri Yüklenecek .vaultbak Dosyasını Seçin")
-        .arg("--file-filter=Kasa Yedek Dosyaları (*.vaultbak *.json) | *.vaultbak *.json");
+        .arg("--title=Select .vaultbak File to Restore")
+        .arg("--file-filter=Vault Backup Files (*.vaultbak *.json) | *.vaultbak *.json");
     if let Ok(display) = std::env::var("DISPLAY") {
         cmd.env("DISPLAY", display);
     }
 
-    let output = cmd.output().map_err(|e| format!("Dosya seçici başlatılamadı: {}", e))?;
+    let output = cmd.output().map_err(|e| format!("Failed to open file picker: {}", e))?;
     if !output.status.success() {
-        return Err("Geri yükleme iptal edildi.".into());
+        return Err("Restore cancelled.".into());
     }
 
     let chosen = String::from_utf8_lossy(&output.stdout).trim().to_string();
     if chosen.is_empty() {
-        return Err("Geçerli bir dosya seçilmedi.".into());
+        return Err("No valid file was selected.".into());
     }
 
     let p = PathBuf::from(&chosen);
     if !p.exists() {
-        return Err("Seçilen dosya diskte bulunamadı.".into());
+        return Err("Selected file not found on disk.".into());
     }
 
     let json = fs::read_to_string(&p)
-        .map_err(|e| format!("Yedek dosyası okunamadı: {}", e))?;
+        .map_err(|e| format!("Failed to read backup file: {}", e))?;
 
     vault.restore_backup_bundle(&json)?;
 
-    Ok(p.file_name().and_then(|n: &std::ffi::OsStr| n.to_str()).unwrap_or("yedek").to_string())
+    Ok(p.file_name().and_then(|n: &std::ffi::OsStr| n.to_str()).unwrap_or("backup").to_string())
 }
 
