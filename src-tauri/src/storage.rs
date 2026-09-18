@@ -27,166 +27,41 @@ pub struct ClipItem {
     pub image_hash: Option<u64>,
 }
 
-fn default_true() -> bool {
-    true
-}
-
-fn default_vault_file_size() -> u32 {
-    20
-}
-
-fn default_window_width() -> f64 {
-    640.0
-}
-
-fn default_window_height() -> f64 {
-    560.0
-}
-
-fn default_theme_preset() -> String {
-    "light".to_string()
-}
-
-fn default_bg_color() -> String {
-    "#f8fafc".to_string()
-}
-
-fn default_card_color() -> String {
-    "#ffffff".to_string()
-}
-
-fn default_accent_color() -> String {
-    "#10b981".to_string()
-}
-
-fn default_text_color() -> String {
-    "#0f172a".to_string()
-}
-
-fn default_secondary_text_color() -> String {
-    "#64748b".to_string()
-}
-
-fn default_border_color() -> String {
-    "#e2e8f0".to_string()
-}
-
-fn default_bg_opacity() -> u8 {
-    95
-}
-
-fn default_bg_image_opacity() -> u8 {
-    25
-}
-
-fn default_bg_blur() -> String {
-    "sm".to_string()
-}
-
-fn default_shortcut_close() -> String {
-    "Escape".to_string()
-}
-
-fn default_shortcut_copy() -> String {
-    "Enter".to_string()
-}
-
-fn default_shortcut_delete() -> String {
-    "Delete".to_string()
-}
-
-fn default_shortcut_pin() -> String {
-    "P".to_string()
-}
-
-fn default_shortcut_move_up() -> String {
-    "Alt+ArrowUp".to_string()
-}
-
-fn default_shortcut_move_down() -> String {
-    "Alt+ArrowDown".to_string()
-}
-
-fn default_shortcut_search() -> String {
-    "Ctrl+F".to_string()
-}
-
-fn default_shortcut_clear() -> String {
-    "Ctrl+Delete".to_string()
-}
-
-fn default_shortcut_toggle_vault() -> String {
-    "Ctrl+Tab".to_string()
-}
-
-fn default_shortcut_settings() -> String {
-    "Ctrl+,".to_string()
-}
-
-fn default_shortcut_export() -> String {
-    "Ctrl+E".to_string()
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct AppSettings {
     pub global_shortcut: String,
     pub max_history: usize,
     pub close_on_copy: bool,
-    #[serde(default = "default_true")]
     pub number_keys_copy: bool,
     pub play_sound: bool,
     pub run_at_startup: bool,
-    #[serde(default = "default_vault_file_size")]
     pub max_vault_file_size_mb: u32,
-    #[serde(default = "default_window_width")]
     pub window_width: f64,
-    #[serde(default = "default_window_height")]
     pub window_height: f64,
-    #[serde(default = "default_theme_preset")]
     pub theme_preset: String,
-    #[serde(default = "default_bg_color")]
     pub custom_bg_color: String,
-    #[serde(default = "default_card_color")]
     pub custom_card_color: String,
-    #[serde(default = "default_accent_color")]
     pub custom_accent_color: String,
-    #[serde(default = "default_text_color")]
     pub custom_text_color: String,
-    #[serde(default = "default_secondary_text_color")]
     pub custom_secondary_text_color: String,
-    #[serde(default = "default_border_color")]
     pub custom_border_color: String,
-    #[serde(default = "default_bg_opacity")]
     pub bg_opacity: u8,
-    #[serde(default)]
     pub bg_image: Option<String>,
-    #[serde(default = "default_bg_image_opacity")]
     pub bg_image_opacity: u8,
-    #[serde(default = "default_bg_blur")]
     pub bg_blur: String,
 
     // Keyboard Shortcuts
-    #[serde(default = "default_shortcut_close")]
     pub shortcut_close: String,
-    #[serde(default = "default_shortcut_copy")]
     pub shortcut_copy: String,
-    #[serde(default = "default_shortcut_delete")]
     pub shortcut_delete: String,
-    #[serde(default = "default_shortcut_pin")]
     pub shortcut_pin: String,
-    #[serde(default = "default_shortcut_move_up")]
     pub shortcut_move_up: String,
-    #[serde(default = "default_shortcut_move_down")]
     pub shortcut_move_down: String,
-    #[serde(default = "default_shortcut_search")]
     pub shortcut_search: String,
-    #[serde(default = "default_shortcut_clear")]
     pub shortcut_clear: String,
-    #[serde(default = "default_shortcut_toggle_vault")]
     pub shortcut_toggle_vault: String,
-    #[serde(default = "default_shortcut_settings")]
     pub shortcut_settings: String,
-    #[serde(default = "default_shortcut_export")]
     pub shortcut_export: String,
 }
 
@@ -385,7 +260,9 @@ impl StorageManager {
         }
 
         // If duplicate exists elsewhere in history, remove old instance so we bring it to the top
-        items.retain(|item| !(item.item_type == "text" && item.content == text));
+        if let Some(pos) = items.iter().position(|it| it.item_type == "text" && it.content == text) {
+            items.remove(pos);
+        }
 
         let char_count = text.chars().count();
         let word_count = text.split_whitespace().count();
@@ -455,17 +332,9 @@ impl StorageManager {
         }
 
         // 2. If duplicate image exists elsewhere in history, remove old instance so it moves to top
-        let mut removed_files = Vec::new();
-        items.retain(|item| {
-            if item.item_type == "image" && item.image_hash == Some(hash) {
-                removed_files.push(item.content.clone());
-                false
-            } else {
-                true
-            }
-        });
-        for file in removed_files {
-            let _ = fs::remove_file(self.images_dir.join(file));
+        if let Some(pos) = items.iter().position(|it| it.item_type == "image" && it.image_hash == Some(hash)) {
+            let removed = items.remove(pos);
+            let _ = fs::remove_file(self.images_dir.join(removed.content));
         }
 
         let image_filename = format!("{}.png", Uuid::new_v4());

@@ -202,10 +202,18 @@ export interface ParsedShortcut {
   key: string;
 }
 
+const shortcutCache = new Map<string, ParsedShortcut | null>();
+
 export function parseShortcutString(str: string | undefined): ParsedShortcut | null {
   if (!str || typeof str !== 'string') return null;
+  const cached = shortcutCache.get(str);
+  if (cached !== undefined) return cached;
+
   const rawParts = str.split('+').map((p) => p.trim()).filter(Boolean);
-  if (rawParts.length === 0) return null;
+  if (rawParts.length === 0) {
+    shortcutCache.set(str, null);
+    return null;
+  }
 
   let ctrl = false;
   let alt = false;
@@ -228,8 +236,9 @@ export function parseShortcutString(str: string | undefined): ParsedShortcut | n
     }
   }
 
-  if (!key) return null;
-  return { ctrl, alt, shift, meta, key };
+  const result = key ? { ctrl, alt, shift, meta, key } : null;
+  shortcutCache.set(str, result);
+  return result;
 }
 
 /**

@@ -1,6 +1,5 @@
 <script lang="ts">
   import { getCurrentWindow } from '@tauri-apps/api/window';
-  import { invoke } from '@tauri-apps/api/core';
   import type { ResizeDirection } from '$lib/types';
 
   const appWindow = typeof window !== 'undefined' ? getCurrentWindow() : null;

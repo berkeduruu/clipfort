@@ -3,6 +3,7 @@
   import { invoke } from '@tauri-apps/api/core';
   import type { VaultItem, VaultStatus, AppSettings } from '$lib/types';
   import { hexToRgba } from '$lib/theme';
+  import { formatBytes } from '$lib/utils';
 
   let {
     settings,
@@ -109,13 +110,6 @@
       items: groupItems,
     }));
   });
-
-  function formatBytes(bytes?: number): string {
-    if (!bytes) return '';
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  }
 
   async function refreshStatus() {
     isLoading = true;

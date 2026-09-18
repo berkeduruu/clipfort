@@ -430,27 +430,27 @@ pub struct PickedFileInfo {
 
 #[tauri::command]
 pub fn pick_vault_file() -> Result<Option<PickedFileInfo>, String> {
-    println!("[Vault File] pick_vault_file invoked!");
+    let parse_output = |output: std::process::Output| -> Option<PickedFileInfo> {
+        if !output.status.success() {
+            return None;
+        }
+        let path_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if path_str.is_empty() {
+            return None;
+        }
+        let p = std::path::PathBuf::from(&path_str);
+        let name = p.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| "file".into());
+        let size_bytes = std::fs::metadata(&p).map(|m| m.len()).unwrap_or(0);
+        Some(PickedFileInfo { path: path_str, name, size_bytes })
+    };
+
     let mut cmd = std::process::Command::new("zenity");
     cmd.args(["--file-selection", "--title=Select File for Secure Vault"]);
     if let Ok(display) = std::env::var("DISPLAY") {
         cmd.env("DISPLAY", display);
     }
     if let Ok(output) = cmd.output() {
-        if output.status.success() {
-            let path_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            if !path_str.is_empty() {
-                let p = std::path::PathBuf::from(&path_str);
-                let name = p.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| "file".into());
-                let size_bytes = std::fs::metadata(&p).map(|m| m.len()).unwrap_or(0);
-                return Ok(Some(PickedFileInfo {
-                    path: path_str,
-                    name,
-                    size_bytes,
-                }));
-            }
-        }
-        return Ok(None);
+        return Ok(parse_output(output));
     }
 
     // Fallback: kdialog (KDE)
@@ -458,20 +458,7 @@ pub fn pick_vault_file() -> Result<Option<PickedFileInfo>, String> {
         .args(["--getopenfilename", "--title", "Select File for Secure Vault"])
         .output()
     {
-        if output.status.success() {
-            let path_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            if !path_str.is_empty() {
-                let p = std::path::PathBuf::from(&path_str);
-                let name = p.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| "file".into());
-                let size_bytes = std::fs::metadata(&p).map(|m| m.len()).unwrap_or(0);
-                return Ok(Some(PickedFileInfo {
-                    path: path_str,
-                    name,
-                    size_bytes,
-                }));
-            }
-        }
-        return Ok(None);
+        return Ok(parse_output(output));
     }
 
     Err("Failed to open file picker dialog.".into())
@@ -485,7 +472,6 @@ pub fn copy_vault_file(
     app_handle: AppHandle,
 ) -> Result<String, String> {
     let (file_name, target_path, bytes) = vault.get_file_info_and_path(&id)?;
-    println!("[Vault File] copy_vault_file: id={}, path={:?}", id, target_path);
 
     // Clean up any legacy .cache vault folder if it exists
     if let Some(c_dir) = dirs::cache_dir() {
@@ -615,7 +601,6 @@ pub fn export_vault_file(
     vault: State<'_, SharedVault>,
 ) -> Result<String, String> {
     let (file_name, target_path, bytes) = vault.get_file_info_and_path(&id)?;
-    println!("[Vault File] export_vault_file: id={}, path={:?}", id, target_path);
 
     let downloads_dir = dirs::download_dir()
         .or_else(dirs::home_dir)
@@ -647,7 +632,6 @@ pub fn export_vault_file(
         return Err("File to export not found.".into());
     }
 
-    println!("[Vault File] exported successfully to: {:?}", dest_path);
     Ok(dest_path.to_string_lossy().to_string())
 }
 
@@ -657,7 +641,6 @@ pub fn open_vault_file(
     vault: State<'_, SharedVault>,
 ) -> Result<(), String> {
     let (_, target_path, _) = vault.get_file_info_and_path(&id)?;
-    println!("[Vault File] open_vault_file: id={}, path={:?}", id, target_path);
 
     if !target_path.exists() {
         return Err("File to open not found on disk.".into());

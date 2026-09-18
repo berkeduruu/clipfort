@@ -9,8 +9,10 @@ use std::thread;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter};
 
+use std::sync::LazyLock;
+
 pub static IS_INTERNAL_COPY: AtomicBool = AtomicBool::new(false);
-static IGNORED_SECRET_HASHES: Mutex<Option<HashSet<u64>>> = Mutex::new(None);
+static IGNORED_SECRET_HASHES: LazyLock<Mutex<HashSet<u64>>> = LazyLock::new(|| Mutex::new(HashSet::new()));
 
 pub fn compute_text_hash(text: &str) -> u64 {
     let mut hasher = DefaultHasher::new();
@@ -19,8 +21,7 @@ pub fn compute_text_hash(text: &str) -> u64 {
 }
 
 pub fn add_ignored_secret_hash(hash: u64) {
-    let mut guard = IGNORED_SECRET_HASHES.lock().unwrap();
-    let set = guard.get_or_insert_with(HashSet::new);
+    let mut set = IGNORED_SECRET_HASHES.lock().unwrap();
     if set.len() > 200 {
         set.clear();
     }
@@ -28,12 +29,7 @@ pub fn add_ignored_secret_hash(hash: u64) {
 }
 
 pub fn is_ignored_secret_hash(hash: u64) -> bool {
-    let guard = IGNORED_SECRET_HASHES.lock().unwrap();
-    if let Some(set) = guard.as_ref() {
-        set.contains(&hash)
-    } else {
-        false
-    }
+    IGNORED_SECRET_HASHES.lock().unwrap().contains(&hash)
 }
 
 pub fn is_ignored_text(text: &str) -> bool {
@@ -62,8 +58,7 @@ pub fn start_clipboard_monitor(app_handle: AppHandle, storage: SharedStorage) {
             if !current_text.trim().is_empty() {
                 last_text = Some(current_text.clone());
                 if !is_ignored_text(&current_text) {
-                    if let Some(item) = storage.add_text_item(current_text) {
-                        println!("[Clipboard Monitor] Captured initial text: {} chars", item.char_count.unwrap_or(0));
+                    if let Some(_item) = storage.add_text_item(current_text) {
                         let _ = app_handle.emit("clipboard-updated", ());
                     }
                 }
@@ -72,7 +67,6 @@ pub fn start_clipboard_monitor(app_handle: AppHandle, storage: SharedStorage) {
             let hash = StorageManager::compute_image_hash(img.width as u32, img.height as u32, &img.bytes);
             last_image_hash = Some(hash);
             if let Ok(Some(_item)) = storage.add_image_item(img.width as u32, img.height as u32, &img.bytes) {
-                println!("[Clipboard Monitor] Captured initial image: {}x{}", img.width, img.height);
                 let _ = app_handle.emit("clipboard-updated", ());
             }
         }
@@ -111,12 +105,10 @@ pub fn start_clipboard_monitor(app_handle: AppHandle, storage: SharedStorage) {
                             detected_text_change = true;
 
                             if is_ignored_text(&text) {
-                                println!("[Clipboard Monitor] Skipped adding vault secret to public clipboard history");
                                 continue;
                             }
 
-                            if let Some(item) = storage.add_text_item(text) {
-                                println!("[Clipboard Monitor] New text item added: {} chars", item.char_count.unwrap_or(0));
+                            if let Some(_item) = storage.add_text_item(text) {
                                 let _ = app_handle.emit("clipboard-updated", ());
                             }
                         }
@@ -145,7 +137,6 @@ pub fn start_clipboard_monitor(app_handle: AppHandle, storage: SharedStorage) {
                         last_text = None;
 
                         if is_ignored_secret_hash(hash) {
-                            println!("[Clipboard Monitor] Skipped adding vault secret image to public clipboard history");
                             continue;
                         }
 
@@ -154,7 +145,6 @@ pub fn start_clipboard_monitor(app_handle: AppHandle, storage: SharedStorage) {
                             img.height as u32,
                             &img.bytes,
                         ) {
-                            println!("[Clipboard Monitor] New image item added: {}x{}", img.width, img.height);
                             let _ = app_handle.emit("clipboard-updated", ());
                         }
                     }
@@ -170,12 +160,10 @@ mod tests {
 
     #[test]
     fn test_polling_x11() {
-        println!("DISPLAY: {:?}", std::env::var("DISPLAY"));
         let mut cb = Clipboard::new().expect("Clipboard new");
-        for i in 0..3 {
-            let res = cb.get_text();
-            println!("Poll #{}: {:?}", i, res);
-            std::thread::sleep(std::time::Duration::from_millis(100));
+        for _ in 0..3 {
+            let _ = cb.get_text();
+            std::thread::sleep(std::time::Duration::from_millis(10));
         }
     }
 }

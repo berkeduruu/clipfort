@@ -120,9 +120,6 @@ pub fn apply_current_target_position(window: &WebviewWindow) {
         calculate_bottom_right_position(window)
     };
 
-    println!("[Window] Applying target position: ({}, {}) (user_dragged={})",
-        target_x, target_y, USER_HAS_DRAGGED_WINDOW.load(Ordering::SeqCst));
-
     apply_position(window, target_x, target_y);
 }
 
@@ -144,8 +141,6 @@ pub fn toggle_main_window(app: &AppHandle) {
 fn toggle_main_window_inner(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
         let is_visible = window.is_visible().unwrap_or(false);
-
-        println!("[Window] Toggle requested: visible={}", is_visible);
 
         if is_visible {
             let _ = window.hide();
@@ -194,8 +189,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
-                .with_handler(move |app, shortcut, event| {
-                    println!("[GlobalShortcut] Detected event: {:?} on shortcut: {:?}", event.state(), shortcut);
+                .with_handler(move |app, _shortcut, event| {
                     if event.state() == ShortcutState::Pressed {
                         toggle_main_window(app);
                     }
@@ -216,7 +210,6 @@ pub fn run() {
                 if USER_HAS_DRAGGED_WINDOW.load(Ordering::SeqCst) {
                     USER_CUSTOM_X.store(pos.x, Ordering::SeqCst);
                     USER_CUSTOM_Y.store(pos.y, Ordering::SeqCst);
-                    println!("[Window] Recorded user custom position: ({}, {})", pos.x, pos.y);
                 }
             }
         })
