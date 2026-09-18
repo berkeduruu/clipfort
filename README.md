@@ -82,20 +82,44 @@ All shortcuts are fully customizable from **Settings → Shortcuts**. Below are 
 
 ## Installation
 
-### Linux (Debian / Ubuntu)
+Pre-built releases for Linux and Windows are available on the [Releases](https://github.com/username/clipfort/releases) page.
 
-Download the `.deb` package from releases and install:
+### 🐧 Linux (Ubuntu / Debian / Mint / Pop!_OS)
 
-```bash
-sudo dpkg -i ClipFort_0.1.0_amd64.deb
-sudo apt-get install -f   # if any dependencies are needed
-```
+#### Option 1: Install via `.deb` Package (Recommended)
+1. Download `ClipFort_0.1.0_amd64.deb` from [Releases](https://github.com/username/clipfort/releases).
+2. Install via terminal or double-click in your file manager:
+   ```bash
+   sudo dpkg -i ClipFort_0.1.0_amd64.deb
+   sudo apt-get install -f   # resolves any dependencies automatically if needed
+   ```
+3. Launch **ClipFort** from your application menu or run `clipfort` in a terminal.
+4. **Hotkeys & Tray:** ClipFort starts minimized in the system tray and opens with `Alt + Shift + Q`.
 
-Launch from your application menu or run `clipfort` in a terminal.
+#### Option 2: Standalone Binary (Arch / Fedora / Other Distros)
+If you prefer not to use `.deb`:
+1. Extract the release package.
+2. Copy the binary to `/usr/local/bin/`:
+   ```bash
+   sudo cp clipfort /usr/local/bin/
+   sudo chmod +x /usr/local/bin/clipfort
+   ```
 
-### Windows 10 / 11
+---
 
-Download and run `clipfort_0.1.0_x64-setup.exe` from releases. ClipFort runs in the system tray and registers `Alt+Shift+Q`.
+### 🪟 Windows (Windows 10 / 11)
+
+#### Option 1: NSIS Setup Installer (`.exe`)
+1. Download `clipfort_0.1.0_x64-setup.exe` from [Releases](https://github.com/username/clipfort/releases).
+2. Run the installer and follow the setup wizard.
+3. ClipFort launches in your **System Tray** (near the taskbar clock).
+4. Press `Alt + Shift + Q` anytime to summon ClipFort.
+5. **Autostart:** To run on boot, open **Settings (`Ctrl + ,`) → General** and toggle on **"Launch on startup"**.
+
+#### Option 2: Portable Standalone Executable
+1. Download the portable zip archive from [Releases](https://github.com/username/clipfort/releases).
+2. Extract the folder anywhere (e.g. `C:\Program Files\ClipFort\`).
+3. Run `clipfort.exe`.
 
 ---
 
@@ -113,35 +137,70 @@ Measured on Linux (Ubuntu 24.04, X11, WebKitGTK):
 
 ## Building from Source
 
-### Prerequisites
-- Node.js v18+ or v20+
-- Rust & Cargo v1.75+
+To compile ClipFort yourself from source:
 
-#### Linux Build Dependencies:
-```bash
-sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev patchelf
-```
+### Prerequisites (All Platforms)
+- **Node.js:** v18, v20, or v22 ([Download Node.js](https://nodejs.org/))
+- **Rust:** Latest stable toolchain ([Install Rust via rustup](https://rustup.rs/))
 
-#### Windows Build Dependencies:
-- Visual Studio C++ Build Tools
-- Microsoft Edge WebView2
+### 🐧 Linux Build Instructions
 
-### Development
-```bash
-git clone https://github.com/username/clipfort.git
-cd clipfort
-npm install
-npm run tauri dev
-```
+1. **Install required build dependencies:**
+   ```bash
+   sudo apt-get update
+   sudo apt-get install -y \
+     libwebkit2gtk-4.1-dev \
+     libgtk-3-dev \
+     libayatana-appindicator3-dev \
+     librsvg2-dev \
+     patchelf \
+     build-essential \
+     curl
+   ```
 
-### Build Release
-```bash
-npm run tauri build
-```
+2. **Clone repository and install frontend dependencies:**
+   ```bash
+   git clone https://github.com/username/clipfort.git
+   cd clipfort
+   npm install
+   ```
 
-The output packages are in:
-- **Linux:** `src-tauri/target/release/bundle/deb/ClipFort_0.1.0_amd64.deb`
-- **Windows:** `src-tauri/target/release/bundle/nsis/clipfort_0.1.0_x64-setup.exe`
+3. **Run in development mode (live reload):**
+   ```bash
+   npm run tauri dev
+   ```
+
+4. **Build release `.deb` package:**
+   ```bash
+   npm run tauri build -- --bundles deb
+   ```
+   Output: `src-tauri/target/release/bundle/deb/ClipFort_0.1.0_amd64.deb`
+
+---
+
+### 🪟 Windows Build Instructions
+
+1. **Install prerequisites:**
+   - [Visual Studio 2022 Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (check **"Desktop development with C++"**).
+   - [Microsoft Edge WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) (pre-installed on Windows 10/11).
+
+2. **Clone repository and install dependencies (PowerShell):**
+   ```powershell
+   git clone https://github.com/username/clipfort.git
+   cd clipfort
+   npm install
+   ```
+
+3. **Run in development mode:**
+   ```powershell
+   npm run tauri dev
+   ```
+
+4. **Build release installer (`.exe`):**
+   ```powershell
+   npm run tauri build -- --bundles nsis
+   ```
+   Output: `src-tauri\target\release\bundle\nsis\clipfort_0.1.0_x64-setup.exe`
 
 ---
 
