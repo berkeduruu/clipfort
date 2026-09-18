@@ -687,21 +687,11 @@ pub fn open_external_url(url: String) -> Result<(), String> {
     Ok(())
 }
 
-#[tauri::command]
-pub fn export_clipboard_history(
-    format: String,
-    storage: State<'_, SharedStorage>,
-) -> Result<String, String> {
-    let items = storage.get_items();
-    let downloads_dir = dirs::download_dir()
-        .or_else(dirs::home_dir)
-        .unwrap_or_else(|| PathBuf::from("/tmp"));
-    let _ = fs::create_dir_all(&downloads_dir);
-
+pub fn format_history_export(items: &[ClipItem], format: &str) -> (String, String) {
     let now_str = chrono::Local::now().format("%Y%m%d_%H%M%S").to_string();
     let is_markdown = format.to_lowercase() == "markdown" || format.to_lowercase() == "md";
 
-    let (filename, content) = if is_markdown {
+    if is_markdown {
         let mut md = String::new();
         md.push_str("# Clipboard History\n\n");
         md.push_str(&format!("*Exported on: {}*\n", chrono::Local::now().format("%Y-%m-%d %H:%M:%S")));
@@ -747,8 +737,21 @@ pub fn export_clipboard_history(
             txt.push_str("\n--------------------------------------------------------\n\n");
         }
         (format!("clipboard_history_{}.txt", now_str), txt)
-    };
+    }
+}
 
+#[tauri::command]
+pub fn export_clipboard_history(
+    format: String,
+    storage: State<'_, SharedStorage>,
+) -> Result<String, String> {
+    let items = storage.get_items();
+    let downloads_dir = dirs::download_dir()
+        .or_else(dirs::home_dir)
+        .unwrap_or_else(|| PathBuf::from("/tmp"));
+    let _ = fs::create_dir_all(&downloads_dir);
+
+    let (filename, content) = format_history_export(&items, &format);
     let dest_path = downloads_dir.join(filename);
     fs::write(&dest_path, content.as_bytes())
         .map_err(|e| format!("Failed to save file: {}", e))?;
@@ -832,5 +835,59 @@ pub async fn restore_vault_backup(vault: State<'_, SharedVault>) -> Result<Strin
     vault.restore_backup_bundle(&json)?;
 
     Ok(p.file_name().and_then(|n: &std::ffi::OsStr| n.to_str()).unwrap_or("backup").to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_format_history_export_markdown_and_txt() {
+        let items = vec![
+            ClipItem {
+                id: "1".into(),
+                item_type: "text".into(),
+                content: "Hello ClipFort".into(),
+                preview: "Hello ClipFort".into(),
+                timestamp: 1710000000000,
+                pinned: true,
+                char_count: Some(14),
+                word_count: Some(2),
+                image_width: None,
+                image_height: None,
+                file_size_bytes: None,
+                image_hash: None,
+            },
+            ClipItem {
+                id: "2".into(),
+                item_type: "image".into(),
+                content: "test.png".into(),
+                preview: "data:image/png;base64,...".into(),
+                timestamp: 1710000001000,
+                pinned: false,
+                char_count: None,
+                word_count: None,
+                image_width: Some(800),
+                image_height: Some(600),
+                file_size_bytes: Some(12345),
+                image_hash: Some(999),
+            },
+        ];
+
+        // 1. Markdown export
+        let (md_name, md_content) = format_history_export(&items, "markdown");
+        assert!(md_name.ends_with(".md"));
+        assert!(md_content.contains("# Clipboard History"));
+        assert!(md_content.contains("[📌 Pinned]"));
+        assert!(md_content.contains("Hello ClipFort"));
+        assert!(md_content.contains("800x600 px"));
+
+        // 2. Plain text export
+        let (txt_name, txt_content) = format_history_export(&items, "text");
+        assert!(txt_name.ends_with(".txt"));
+        assert!(txt_content.contains("CLIPBOARD HISTORY"));
+        assert!(txt_content.contains("Hello ClipFort"));
+        assert!(txt_content.contains("[Image: test.png]"));
+    }
 }
 

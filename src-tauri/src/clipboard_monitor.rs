@@ -166,4 +166,25 @@ mod tests {
             std::thread::sleep(std::time::Duration::from_millis(10));
         }
     }
+
+    #[test]
+    fn test_secret_masking() {
+        let normal_text = "This is a public copied text";
+        assert!(!is_ignored_text(normal_text));
+
+        // Vault paths are automatically ignored
+        assert!(is_ignored_text("/home/user/.local/share/clipfort/vault_files/abc.enc"));
+        assert!(is_ignored_text("/home/user/.local/share/clipfort/vault_cache/123.dat"));
+        assert!(is_ignored_text("/home/user/.local/share/clipfort/vault_storage/secret.pdf"));
+
+        // Register secret hash
+        let secret = "MySuperSecretBankPassword123!";
+        let hash = compute_text_hash(secret);
+        assert!(!is_ignored_secret_hash(hash));
+        assert!(!is_ignored_text(secret));
+
+        add_ignored_secret_hash(hash);
+        assert!(is_ignored_secret_hash(hash));
+        assert!(is_ignored_text(secret));
+    }
 }
