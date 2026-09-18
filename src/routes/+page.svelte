@@ -9,6 +9,7 @@
   import VaultView from '$lib/components/VaultView.svelte';
   import ResizeHandles from '$lib/components/ResizeHandles.svelte';
   import { getEffectiveTheme, hexToRgba, getBlurClass } from '$lib/theme';
+  import { matchesShortcut, DEFAULT_SHORTCUTS } from '$lib/shortcuts';
 
   let appMode = $state<AppMode>('clipboard');
   let clips = $state<ClipItem[]>([]);
@@ -28,6 +29,7 @@
     max_vault_file_size_mb: 20,
     window_width: 640,
     window_height: 560,
+    ...DEFAULT_SHORTCUTS,
   });
 
   let currentTheme = $derived(getEffectiveTheme(settings));
@@ -73,7 +75,11 @@
 
   async function loadSettings() {
     try {
-      settings = await invoke<AppSettings>('get_settings');
+      const res = await invoke<AppSettings>('get_settings');
+      settings = {
+        ...DEFAULT_SHORTCUTS,
+        ...res,
+      };
     } catch (e) {
       console.error('Failed to load settings:', e);
     }
@@ -185,53 +191,103 @@
   }
 
   function handleGlobalKeyDown(e: KeyboardEvent) {
-    if (isSettingsOpen) {
-      if (e.key === 'Escape') {
-        isSettingsOpen = false;
-        e.preventDefault();
-      }
-      return;
-    }
-
-    if (appMode === 'vault') {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        invoke('hide_window');
-      }
-      return;
-    }
-
     const isSearchFocused = document.activeElement?.id === 'search-input';
 
-    // 1. Arrow Navigation - ALWAYS WORKS regardless of search focus
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      if (e.altKey) {
-        moveItem(selectedIndex, 'down');
-      } else {
-        if (selectedIndex < filteredClips.length - 1) {
-          selectedIndex++;
-          scrollToSelected(selectedIndex);
-        }
+    // 0. If settings modal is open:
+    if (isSettingsOpen) {
+      if (matchesShortcut(e, settings.shortcut_close || 'Escape')) {
+        e.preventDefault();
+        isSettingsOpen = false;
       }
       return;
     }
 
-    if (e.key === 'ArrowUp') {
+    // 1. Close / Hide window shortcut:
+    if (matchesShortcut(e, settings.shortcut_close || 'Escape')) {
       e.preventDefault();
-      if (e.altKey) {
-        moveItem(selectedIndex, 'up');
-      } else {
-        if (selectedIndex > 0) {
-          selectedIndex--;
-          scrollToSelected(selectedIndex);
-        }
+      invoke('hide_window');
+      return;
+    }
+
+    // 2. Toggle Clipboard / Vault Mode:
+    if (matchesShortcut(e, settings.shortcut_toggle_vault || 'Ctrl+Tab')) {
+      e.preventDefault();
+      appMode = appMode === 'clipboard' ? 'vault' : 'clipboard';
+      return;
+    }
+
+    // 3. Open Settings shortcut:
+    if (matchesShortcut(e, settings.shortcut_settings || 'Ctrl+,')) {
+      e.preventDefault();
+      isSettingsOpen = true;
+      return;
+    }
+
+    // If in vault mode, clipboard specific actions don't run
+    if (appMode === 'vault') {
+      return;
+    }
+
+    // 4. Focus Search shortcut:
+    if (matchesShortcut(e, settings.shortcut_search || 'Ctrl+F')) {
+      e.preventDefault();
+      const input = document.getElementById('search-input') as HTMLInputElement | null;
+      if (input) {
+        input.focus();
+        input.select();
       }
       return;
     }
 
-    // 2. Enter to copy selected and close window
-    if (e.key === 'Enter') {
+    // 5. Open Export History shortcut:
+    if (matchesShortcut(e, settings.shortcut_export || 'Ctrl+E')) {
+      e.preventDefault();
+      isExportModalOpen = true;
+      return;
+    }
+
+    // 6. Clear Unpinned shortcut:
+    if (matchesShortcut(e, settings.shortcut_clear || 'Ctrl+Delete')) {
+      e.preventDefault();
+      handleClearAll();
+      return;
+    }
+
+    // 7. Reorder Move Item Up:
+    if (matchesShortcut(e, settings.shortcut_move_up || 'Alt+ArrowUp')) {
+      e.preventDefault();
+      moveItem(selectedIndex, 'up');
+      return;
+    }
+
+    // 8. Reorder Move Item Down:
+    if (matchesShortcut(e, settings.shortcut_move_down || 'Alt+ArrowDown')) {
+      e.preventDefault();
+      moveItem(selectedIndex, 'down');
+      return;
+    }
+
+    // 9. Standard Arrow Navigation (always navigates list):
+    if (e.key === 'ArrowDown' && !e.altKey && !e.ctrlKey) {
+      e.preventDefault();
+      if (selectedIndex < filteredClips.length - 1) {
+        selectedIndex++;
+        scrollToSelected(selectedIndex);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowUp' && !e.altKey && !e.ctrlKey) {
+      e.preventDefault();
+      if (selectedIndex > 0) {
+        selectedIndex--;
+        scrollToSelected(selectedIndex);
+      }
+      return;
+    }
+
+    // 10. Copy Selected Item:
+    if (matchesShortcut(e, settings.shortcut_copy || 'Enter')) {
       if (filteredClips.length > 0 && selectedIndex < filteredClips.length) {
         e.preventDefault();
         copyClip(filteredClips[selectedIndex].id);
@@ -239,14 +295,27 @@
       return;
     }
 
-    // 3. Escape to close window
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      invoke('hide_window');
+    // 11. Delete Selected Item:
+    if (matchesShortcut(e, settings.shortcut_delete || 'Delete') || (e.key === 'Backspace' && !isSearchFocused)) {
+      if (filteredClips.length > 0 && selectedIndex < filteredClips.length) {
+        e.preventDefault();
+        deleteClip(filteredClips[selectedIndex].id);
+      }
       return;
     }
 
-    // 4. 1-9 direct slot keys:
+    // 12. Pin / Unpin Selected Item:
+    const pinShortcut = settings.shortcut_pin || 'P';
+    const pinHasModifiers = pinShortcut.includes('Ctrl') || pinShortcut.includes('Alt') || pinShortcut.includes('Super');
+    if (matchesShortcut(e, pinShortcut) && (!isSearchFocused || pinHasModifiers)) {
+      if (filteredClips.length > 0 && selectedIndex < filteredClips.length) {
+        e.preventDefault();
+        togglePin(filteredClips[selectedIndex].id);
+      }
+      return;
+    }
+
+    // 13. 1-9 direct slot keys:
     // If search is empty (or Alt is pressed), 1-9 directly copies the item!
     const num = parseInt(e.key, 10);
     if (!isNaN(num) && num >= 1 && num <= 9 && !e.ctrlKey) {
@@ -258,24 +327,6 @@
           return;
         }
       }
-    }
-
-    // 5. Delete key to delete selected item
-    if (e.key === 'Delete' || (e.key === 'Backspace' && !isSearchFocused)) {
-      if (filteredClips.length > 0 && selectedIndex < filteredClips.length) {
-        e.preventDefault();
-        deleteClip(filteredClips[selectedIndex].id);
-      }
-      return;
-    }
-
-    // 6. 'P' key to toggle pin (when search input is not actively typing)
-    if ((e.key === 'p' || e.key === 'P') && !isSearchFocused && !e.ctrlKey && !e.altKey) {
-      if (filteredClips.length > 0 && selectedIndex < filteredClips.length) {
-        e.preventDefault();
-        togglePin(filteredClips[selectedIndex].id);
-      }
-      return;
     }
   }
 

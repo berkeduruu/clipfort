@@ -1,8 +1,9 @@
 [package]
 name = "clipfort"
 version = "0.1.0"
-description = "ClipFort - Lightweight Cross-Platform Clipboard Manager & Encrypted Vault for Windows & Linux"
-authors = ["you"]
+description = "ClipFort - Lightweight Cross-Platform Clipboard Manager & Encrypted Vault for Linux and Windows"
+authors = ["ClipFort Contributors"]
+license = "MIT"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

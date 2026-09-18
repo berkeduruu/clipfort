@@ -12,7 +12,16 @@ export interface ClipItem {
   file_size_bytes?: number;
 }
 
-export type ThemePreset = 'light' | 'dark' | 'midnight' | 'emerald' | 'cyberpunk' | 'sunset' | 'custom';
+export type ThemePreset =
+  | 'light'
+  | 'dark'
+  | 'midnight'
+  | 'emerald'
+  | 'cyberpunk'
+  | 'sunset'
+  | 'nord'
+  | 'oled'
+  | 'custom';
 
 export interface AppSettings {
   global_shortcut: string;
@@ -36,6 +45,18 @@ export interface AppSettings {
   bg_image?: string | null;
   bg_image_opacity?: number;
   bg_blur?: 'none' | 'sm' | 'md' | 'lg' | string;
+  // Keyboard Shortcuts
+  shortcut_close?: string;
+  shortcut_copy?: string;
+  shortcut_delete?: string;
+  shortcut_pin?: string;
+  shortcut_move_up?: string;
+  shortcut_move_down?: string;
+  shortcut_search?: string;
+  shortcut_clear?: string;
+  shortcut_toggle_vault?: string;
+  shortcut_settings?: string;
+  shortcut_export?: string;
 }
 
 export type FilterCategory = 'all' | 'text' | 'image' | 'pinned';

@@ -54,7 +54,7 @@
   id="clip-item-{index}"
   onclick={onSelect}
   class="group relative flex items-start gap-3 p-3 mx-2 my-1 rounded-xl transition-all duration-150 cursor-pointer border select-none {isSelected
-    ? 'shadow-xs ring-1 ring-emerald-500/20'
+    ? 'shadow-xs'
     : 'hover:brightness-95'}"
   style="
     background-color: {currentTheme
@@ -63,6 +63,7 @@
     border-color: {currentTheme
       ? (isSelected ? currentTheme.accentColor : hexToRgba(currentTheme.borderColor, 70))
       : (isSelected ? '#10b981' : '#e2e8f0')};
+    box-shadow: {isSelected ? `0 0 0 1px ${hexToRgba(currentTheme ? currentTheme.accentColor : '#10b981', 35)}` : 'none'};
     color: {currentTheme ? currentTheme.textColor : '#0f172a'};
   "
 >
@@ -76,7 +77,7 @@
             ? (currentTheme ? currentTheme.accentColor : '#10b981')
             : (currentTheme ? hexToRgba(currentTheme.textColor, 12) : '#f1f5f9')};
           color: {isSelected
-            ? '#ffffff'
+            ? (currentTheme ? currentTheme.accentTextColor : '#ffffff')
             : (currentTheme ? currentTheme.textColor : '#64748b')};
         "
         title="Press {index + 1} to select"

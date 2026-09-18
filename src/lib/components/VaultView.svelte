@@ -631,7 +631,7 @@
             class="mt-2.5 w-full py-1.5 font-bold text-xs rounded-lg shadow-sm transition-all active:scale-[0.99] flex items-center justify-center gap-1.5 cursor-pointer"
             style="
               background-color: {currentTheme ? currentTheme.accentColor : '#f59e0b'};
-              color: #ffffff;
+              color: {currentTheme ? currentTheme.accentTextColor : '#ffffff'};
             "
           >
             <span>🚀 Start Instantly (No PIN / Automatic)</span>
@@ -691,7 +691,7 @@
               class="w-full py-1.5 font-medium text-xs rounded-lg transition-colors cursor-pointer"
               style="
                 background-color: {currentTheme ? currentTheme.accentColor : '#475569'};
-                color: #ffffff;
+                color: {currentTheme ? currentTheme.accentTextColor : '#ffffff'};
               "
             >
               Protect with PIN & Start
@@ -748,7 +748,7 @@
           class="w-full py-2 font-medium text-xs rounded-xl shadow-md transition-all active:scale-[0.99] cursor-pointer"
           style="
             background-color: {currentTheme ? currentTheme.accentColor : '#f59e0b'};
-            color: #ffffff;
+            color: {currentTheme ? currentTheme.accentTextColor : '#ffffff'};
           "
         >
           Unlock Vault
@@ -836,7 +836,7 @@
                   ? (currentTheme ? currentTheme.accentColor : '#f59e0b')
                   : (currentTheme ? hexToRgba(currentTheme.cardColor, 90) : 'rgba(30, 41, 59, 0.8)')};
                 color: {activeTab === tabName
-                  ? '#ffffff'
+                  ? (currentTheme ? currentTheme.accentTextColor : '#ffffff')
                   : (currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1')};
                 border: 1px solid {activeTab === tabName
                   ? (currentTheme ? currentTheme.accentColor : '#f59e0b')
@@ -946,11 +946,11 @@
           class="px-3 py-1.5 font-bold rounded-xl text-xs flex items-center space-x-1 shadow-sm transition-all active:scale-95 whitespace-nowrap cursor-pointer shrink-0"
           style="
             background-color: {currentTheme ? currentTheme.accentColor : '#f59e0b'};
-            color: #ffffff;
+            color: {currentTheme ? currentTheme.accentTextColor : '#ffffff'};
           "
           title="Add New Item / File"
         >
-          <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <svg class="w-3.5 h-3.5" style="color: {currentTheme ? currentTheme.accentTextColor : '#ffffff'};" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
           </svg>
           <span>Add</span>
@@ -1264,7 +1264,7 @@
               class="py-1 px-1 rounded-lg text-xs font-semibold transition-all text-center flex items-center justify-center space-x-1 cursor-pointer"
               style="
                 background-color: {formItemType === 'text' ? (currentTheme ? currentTheme.accentColor : '#f59e0b') : 'transparent'};
-                color: {formItemType === 'text' ? '#ffffff' : (currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1')};
+                color: {formItemType === 'text' ? (currentTheme ? currentTheme.accentTextColor : '#ffffff') : (currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1')};
               "
             >
               <span>📄</span>
@@ -1276,7 +1276,7 @@
               class="py-1 px-1 rounded-lg text-xs font-semibold transition-all text-center flex items-center justify-center space-x-1 cursor-pointer"
               style="
                 background-color: {formItemType === 'password' ? (currentTheme ? currentTheme.accentColor : '#f59e0b') : 'transparent'};
-                color: {formItemType === 'password' ? '#ffffff' : (currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1')};
+                color: {formItemType === 'password' ? (currentTheme ? currentTheme.accentTextColor : '#ffffff') : (currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1')};
               "
             >
               <span>🔒</span>
@@ -1288,7 +1288,7 @@
               class="py-1 px-1 rounded-lg text-xs font-semibold transition-all text-center flex items-center justify-center space-x-1 cursor-pointer"
               style="
                 background-color: {formItemType === 'file' ? (currentTheme ? currentTheme.accentColor : '#f59e0b') : 'transparent'};
-                color: {formItemType === 'file' ? '#ffffff' : (currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1')};
+                color: {formItemType === 'file' ? (currentTheme ? currentTheme.accentTextColor : '#ffffff') : (currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1')};
               "
             >
               <span>📎</span>
@@ -1300,7 +1300,7 @@
               class="py-1 px-1 rounded-lg text-xs font-semibold transition-all text-center flex items-center justify-center space-x-1 cursor-pointer"
               style="
                 background-color: {formItemType === 'note' ? (currentTheme ? currentTheme.accentColor : '#f59e0b') : 'transparent'};
-                color: {formItemType === 'note' ? '#ffffff' : (currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1')};
+                color: {formItemType === 'note' ? (currentTheme ? currentTheme.accentTextColor : '#ffffff') : (currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1')};
               "
             >
               <span>📝</span>
@@ -1312,7 +1312,7 @@
               class="py-1 px-1 rounded-lg text-xs font-semibold transition-all text-center flex items-center justify-center space-x-1 cursor-pointer"
               style="
                 background-color: {formItemType === 'link' ? (currentTheme ? currentTheme.accentColor : '#f59e0b') : 'transparent'};
-                color: {formItemType === 'link' ? '#ffffff' : (currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1')};
+                color: {formItemType === 'link' ? (currentTheme ? currentTheme.accentTextColor : '#ffffff') : (currentTheme ? currentTheme.secondaryTextColor : '#cbd5e1')};
               "
             >
               <span>🌐</span>
@@ -1558,7 +1558,7 @@
           class="px-4 py-1.5 text-xs font-bold rounded-lg shadow-sm transition-all active:scale-95 cursor-pointer"
           style="
             background-color: {currentTheme ? currentTheme.accentColor : '#f59e0b'};
-            color: #ffffff;
+            color: {currentTheme ? currentTheme.accentTextColor : '#ffffff'};
           "
         >
           Save
@@ -1605,7 +1605,7 @@
           class="px-3.5 py-1 text-xs font-bold rounded-lg cursor-pointer"
           style="
             background-color: {currentTheme ? currentTheme.accentColor : '#f59e0b'};
-            color: #ffffff;
+            color: {currentTheme ? currentTheme.accentTextColor : '#ffffff'};
           "
         >
           Add
@@ -1700,7 +1700,7 @@
               class="px-2.5 py-1 text-xs font-bold rounded-md transition-colors cursor-pointer"
               style="
                 background-color: {currentTheme ? currentTheme.accentColor : '#f59e0b'};
-                color: #ffffff;
+                color: {currentTheme ? currentTheme.accentTextColor : '#ffffff'};
               "
             >
               + Add PIN Protection
@@ -1824,7 +1824,7 @@
           class="px-3.5 py-1.5 text-xs font-bold rounded-lg shadow-sm cursor-pointer"
           style="
             background-color: {currentTheme ? currentTheme.accentColor : '#f59e0b'};
-            color: #ffffff;
+            color: {currentTheme ? currentTheme.accentTextColor : '#ffffff'};
           "
         >
           Save PIN
@@ -1887,7 +1887,7 @@
           class="px-3.5 py-1.5 text-xs font-bold rounded-lg shadow-sm cursor-pointer"
           style="
             background-color: {currentTheme ? currentTheme.accentColor : '#f59e0b'};
-            color: #ffffff;
+            color: {currentTheme ? currentTheme.accentTextColor : '#ffffff'};
           "
         >
           Remove PIN

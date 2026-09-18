@@ -81,7 +81,7 @@
             ? (currentTheme ? currentTheme.accentColor : '#3b82f6')
             : 'transparent'};
           color: {appMode === 'clipboard'
-            ? '#ffffff'
+            ? (currentTheme ? currentTheme.accentTextColor : '#ffffff')
             : (currentTheme ? currentTheme.secondaryTextColor : '#64748b')};
         "
       >
@@ -99,7 +99,7 @@
             ? (currentTheme ? currentTheme.accentColor : '#f59e0b')
             : 'transparent'};
           color: {appMode === 'vault'
-            ? '#ffffff'
+            ? (currentTheme ? currentTheme.accentTextColor : '#ffffff')
             : (currentTheme ? currentTheme.secondaryTextColor : '#64748b')};
         "
       >
@@ -181,6 +181,7 @@
           background-color: {currentTheme ? hexToRgba(currentTheme.cardColor, 90) : '#ffffff'};
           color: {currentTheme ? currentTheme.textColor : '#0f172a'};
           border-color: {currentTheme ? hexToRgba(currentTheme.borderColor, 80) : '#e2e8f0'};
+          --placeholder-color: {currentTheme ? hexToRgba(currentTheme.secondaryTextColor, 70) : '#94a3b8'};
         "
         autocomplete="off"
         spellcheck="false"
@@ -228,7 +229,7 @@
                 ? (currentTheme ? currentTheme.accentColor : '#ffffff')
                 : 'transparent'};
               color: {activeCategory === cat.id
-                ? '#ffffff'
+                ? (currentTheme ? currentTheme.accentTextColor : '#ffffff')
                 : (currentTheme ? currentTheme.secondaryTextColor : '#64748b')};
             "
           >
@@ -270,3 +271,9 @@
     </div>
   {/if}
 </div>
+
+<style>
+  #search-input::placeholder {
+    color: var(--placeholder-color, #94a3b8);
+  }
+</style>

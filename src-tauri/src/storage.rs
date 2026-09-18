@@ -83,6 +83,50 @@ fn default_bg_blur() -> String {
     "sm".to_string()
 }
 
+fn default_shortcut_close() -> String {
+    "Escape".to_string()
+}
+
+fn default_shortcut_copy() -> String {
+    "Enter".to_string()
+}
+
+fn default_shortcut_delete() -> String {
+    "Delete".to_string()
+}
+
+fn default_shortcut_pin() -> String {
+    "P".to_string()
+}
+
+fn default_shortcut_move_up() -> String {
+    "Alt+ArrowUp".to_string()
+}
+
+fn default_shortcut_move_down() -> String {
+    "Alt+ArrowDown".to_string()
+}
+
+fn default_shortcut_search() -> String {
+    "Ctrl+F".to_string()
+}
+
+fn default_shortcut_clear() -> String {
+    "Ctrl+Delete".to_string()
+}
+
+fn default_shortcut_toggle_vault() -> String {
+    "Ctrl+Tab".to_string()
+}
+
+fn default_shortcut_settings() -> String {
+    "Ctrl+,".to_string()
+}
+
+fn default_shortcut_export() -> String {
+    "Ctrl+E".to_string()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppSettings {
     pub global_shortcut: String,
@@ -120,6 +164,30 @@ pub struct AppSettings {
     pub bg_image_opacity: u8,
     #[serde(default = "default_bg_blur")]
     pub bg_blur: String,
+
+    // Keyboard Shortcuts
+    #[serde(default = "default_shortcut_close")]
+    pub shortcut_close: String,
+    #[serde(default = "default_shortcut_copy")]
+    pub shortcut_copy: String,
+    #[serde(default = "default_shortcut_delete")]
+    pub shortcut_delete: String,
+    #[serde(default = "default_shortcut_pin")]
+    pub shortcut_pin: String,
+    #[serde(default = "default_shortcut_move_up")]
+    pub shortcut_move_up: String,
+    #[serde(default = "default_shortcut_move_down")]
+    pub shortcut_move_down: String,
+    #[serde(default = "default_shortcut_search")]
+    pub shortcut_search: String,
+    #[serde(default = "default_shortcut_clear")]
+    pub shortcut_clear: String,
+    #[serde(default = "default_shortcut_toggle_vault")]
+    pub shortcut_toggle_vault: String,
+    #[serde(default = "default_shortcut_settings")]
+    pub shortcut_settings: String,
+    #[serde(default = "default_shortcut_export")]
+    pub shortcut_export: String,
 }
 
 impl Default for AppSettings {
@@ -145,6 +213,17 @@ impl Default for AppSettings {
             bg_image: None,
             bg_image_opacity: 25,
             bg_blur: "sm".to_string(),
+            shortcut_close: "Escape".to_string(),
+            shortcut_copy: "Enter".to_string(),
+            shortcut_delete: "Delete".to_string(),
+            shortcut_pin: "P".to_string(),
+            shortcut_move_up: "Alt+ArrowUp".to_string(),
+            shortcut_move_down: "Alt+ArrowDown".to_string(),
+            shortcut_search: "Ctrl+F".to_string(),
+            shortcut_clear: "Ctrl+Delete".to_string(),
+            shortcut_toggle_vault: "Ctrl+Tab".to_string(),
+            shortcut_settings: "Ctrl+,".to_string(),
+            shortcut_export: "Ctrl+E".to_string(),
         }
     }
 }
@@ -686,6 +765,63 @@ mod tests {
         assert_eq!(items_after[0].id, item1.id, "Bumped item must now be at index 0");
         assert_eq!(items_after[1].id, item3.id);
         assert_eq!(items_after[2].id, item2.id);
+
+        let _ = fs::remove_dir_all(temp_dir);
+    }
+
+    #[test]
+    fn test_app_settings_backward_compatibility_and_shortcuts() {
+        // 1. Deserializing legacy settings JSON (without new shortcut fields)
+        let legacy_json = r#"{
+            "global_shortcut": "Ctrl+Shift+V",
+            "max_history": 50,
+            "close_on_copy": true,
+            "play_sound": false,
+            "run_at_startup": true
+        }"#;
+
+        let settings: AppSettings = serde_json::from_str(legacy_json)
+            .expect("Failed to deserialize legacy settings JSON");
+
+        // Verify custom settings preserved
+        assert_eq!(settings.global_shortcut, "Ctrl+Shift+V");
+        assert_eq!(settings.max_history, 50);
+        assert!(settings.run_at_startup);
+
+        // Verify default shortcuts automatically applied
+        assert_eq!(settings.shortcut_close, "Escape");
+        assert_eq!(settings.shortcut_copy, "Enter");
+        assert_eq!(settings.shortcut_delete, "Delete");
+        assert_eq!(settings.shortcut_pin, "P");
+        assert_eq!(settings.shortcut_move_up, "Alt+ArrowUp");
+        assert_eq!(settings.shortcut_move_down, "Alt+ArrowDown");
+        assert_eq!(settings.shortcut_search, "Ctrl+F");
+        assert_eq!(settings.shortcut_clear, "Ctrl+Delete");
+        assert_eq!(settings.shortcut_toggle_vault, "Ctrl+Tab");
+        assert_eq!(settings.shortcut_settings, "Ctrl+,");
+        assert_eq!(settings.shortcut_export, "Ctrl+E");
+
+        // 2. Modifying shortcuts and saving
+        let temp_dir = std::env::temp_dir().join(format!("test_cb_settings_{}", Uuid::new_v4()));
+        let _ = fs::create_dir_all(&temp_dir);
+
+        let storage = StorageManager {
+            data_dir: temp_dir.clone(),
+            images_dir: temp_dir.join("images"),
+            history_file: temp_dir.join("history.json"),
+            settings_file: temp_dir.join("settings.json"),
+            items: Mutex::new(Vec::new()),
+            settings: Mutex::new(settings.clone()),
+        };
+
+        let mut updated = settings;
+        updated.shortcut_copy = "Space".to_string();
+        updated.shortcut_pin = "Alt+P".to_string();
+        storage.save_settings(updated.clone()).unwrap();
+
+        let loaded = storage.get_settings();
+        assert_eq!(loaded.shortcut_copy, "Space");
+        assert_eq!(loaded.shortcut_pin, "Alt+P");
 
         let _ = fs::remove_dir_all(temp_dir);
     }

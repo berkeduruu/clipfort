@@ -51,8 +51,8 @@ ClipFort includes two main features:
 - **Tabs & Groups:** Organize records into custom tabs and groups.
 
 ### ⚙️ Settings & Customization
-- **Global Hotkey:** `Alt + Shift + Q` by default (customizable).
-- **Themes:** Dark, Light, Midnight Blue, Forest, Cyber Violet, Amber, or custom colors.
+- **Fully Customizable Shortcuts:** Customize all shortcuts (global launcher, copy, delete, pin, reorder, search, mode switch, settings, clear, export) with live key recording, conflict detection, and reset options in **Settings → Shortcuts**.
+- **Themes:** Dark, Light, Midnight Navy, Emerald Forest, Cyber Violet, Warm Amber, Nord Frost, Pure Black (OLED), or custom colors.
 - **Window Positioning:** Stays anchored at the bottom-right corner by default, or remembers where you drag it.
 - **Autostart:** Optional launch on system startup.
 
@@ -60,16 +60,23 @@ ClipFort includes two main features:
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-|---|---|
-| `Alt + Shift + Q` | Toggle ClipFort window (customizable in Settings) |
-| `↑` / `↓` | Navigate clipboard items |
-| `Enter` | Copy selected item to clipboard and close window |
-| `1` – `9` | Instantly copy items 1 through 9 |
-| `P` | Toggle pin on selected item |
-| `Delete` | Delete selected item |
-| `Alt + ↑` / `Alt + ↓` | Move selected item up or down in the list |
-| `Esc` | Close modal, or hide ClipFort window |
+All shortcuts are fully customizable from **Settings → Shortcuts**. Below are the default keybindings:
+
+| Default Shortcut | Action | Scope | Customizable |
+|---|---|---|---|
+| `Alt + Shift + Q` | Toggle ClipFort window | Global (System-wide) | Yes |
+| `↑` / `↓` | Navigate clipboard items | In-app | Navigation |
+| `Enter` | Copy selected item and close window | In-app | Yes |
+| `1` – `9` | Instantly copy items 1 through 9 | In-app | Toggleable |
+| `P` | Toggle pin on selected item | In-app | Yes |
+| `Delete` | Delete selected item | In-app | Yes |
+| `Alt + ↑` / `Alt + ↓` | Move selected item up or down | In-app | Yes |
+| `Ctrl + F` | Focus search bar | In-app | Yes |
+| `Ctrl + Delete` | Clear unpinned clipboard history | In-app | Yes |
+| `Escape` | Close modal, or hide ClipFort window | In-app | Yes |
+| `Ctrl + Tab` | Switch between Clipboard & Vault | In-app | Yes |
+| `Ctrl + ,` | Open Settings dialog | In-app | Yes |
+| `Ctrl + E` | Open Export Clipboard History | In-app | Yes |
 
 ---
 

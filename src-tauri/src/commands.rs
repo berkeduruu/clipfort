@@ -146,9 +146,20 @@ pub fn save_settings(
     // Dynamically update shortcut if changed
     if old_shortcut != new_shortcut {
         let global_shortcut = app_handle.global_shortcut();
-        let _ = global_shortcut.unregister_all();
-        if let Ok(sc) = Shortcut::from_str(&new_shortcut) {
-            let _ = global_shortcut.register(sc);
+        match Shortcut::from_str(&new_shortcut) {
+            Ok(sc) => {
+                let _ = global_shortcut.unregister_all();
+                if let Err(e) = global_shortcut.register(sc) {
+                    // Rollback to old shortcut if registration failed
+                    if let Ok(old_sc) = Shortcut::from_str(&old_shortcut) {
+                        let _ = global_shortcut.register(old_sc);
+                    }
+                    return Err(format!("Failed to register global shortcut '{}': {}", new_shortcut, e));
+                }
+            }
+            Err(e) => {
+                return Err(format!("Invalid global shortcut format '{}': {}", new_shortcut, e));
+            }
         }
     }
 
