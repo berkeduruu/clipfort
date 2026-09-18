@@ -6,6 +6,7 @@
   import {
     SHORTCUT_DEFINITIONS,
     DEFAULT_SHORTCUTS,
+    DEFAULT_APP_SETTINGS,
     parseKeyboardEvent,
     parseShortcutString,
     getShortcutDisplayParts,
@@ -27,29 +28,7 @@
 
   let activeTab = $state<'general' | 'shortcuts' | 'appearance'>('general');
 
-  let tempSettings = $state<AppSettings>({
-    global_shortcut: 'Alt+Shift+Q',
-    max_history: 100,
-    close_on_copy: true,
-    number_keys_copy: true,
-    play_sound: false,
-    run_at_startup: false,
-    max_vault_file_size_mb: 20,
-    window_width: 640,
-    window_height: 560,
-    theme_preset: 'light',
-    custom_bg_color: '#f8fafc',
-    custom_card_color: '#ffffff',
-    custom_accent_color: '#10b981',
-    custom_text_color: '#0f172a',
-    custom_secondary_text_color: '#64748b',
-    custom_border_color: '#e2e8f0',
-    bg_opacity: 95,
-    bg_image: null,
-    bg_image_opacity: 25,
-    bg_blur: 'sm',
-    ...DEFAULT_SHORTCUTS,
-  });
+  let tempSettings = $state<AppSettings>({ ...DEFAULT_APP_SETTINGS });
 
   let recordingShortcutId = $state<keyof AppSettings | null>(null);
   const conflicts = $derived(findShortcutConflicts(tempSettings));
@@ -151,18 +130,7 @@
   $effect(() => {
     if (isOpen) {
       tempSettings = {
-        theme_preset: 'light',
-        custom_bg_color: '#f8fafc',
-        custom_card_color: '#ffffff',
-        custom_accent_color: '#10b981',
-        custom_text_color: '#0f172a',
-        custom_secondary_text_color: '#64748b',
-        custom_border_color: '#e2e8f0',
-        bg_opacity: 95,
-        bg_image: null,
-        bg_image_opacity: 25,
-        bg_blur: 'sm',
-        ...DEFAULT_SHORTCUTS,
+        ...DEFAULT_APP_SETTINGS,
         ...settings,
       };
       recordingShortcutId = null;

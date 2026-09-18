@@ -118,25 +118,15 @@ pub struct VaultManager {
 
 pub type SharedVault = Arc<VaultManager>;
 
+impl Default for VaultManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl VaultManager {
     pub fn new() -> Self {
-        let root = dirs::data_dir().unwrap_or_else(|| PathBuf::from("."));
-        let base_dir = root.join("clipfort");
-        let old_dir1 = root.join("clipvault");
-        let old_dir2 = root.join("clipboard-manager");
-
-        if !base_dir.exists() {
-            if old_dir1.exists() {
-                let _ = fs::rename(&old_dir1, &base_dir);
-            } else if old_dir2.exists() {
-                let _ = fs::rename(&old_dir2, &base_dir);
-            }
-        }
-
-        if !base_dir.exists() {
-            let _ = fs::create_dir_all(&base_dir);
-        }
-
+        let base_dir = crate::storage::StorageManager::get_base_dir();
         let vault_file = base_dir.join("vault.enc");
         let vault_files_dir = base_dir.join("vault_files");
         let vault_storage_dir = base_dir.join("vault_storage");
@@ -726,6 +716,7 @@ impl VaultManager {
         self.vault_storage_dir.clone()
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn save_item(
         &self,
         id: Option<String>,

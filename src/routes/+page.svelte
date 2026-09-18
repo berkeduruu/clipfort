@@ -9,7 +9,7 @@
   import VaultView from '$lib/components/VaultView.svelte';
   import ResizeHandles from '$lib/components/ResizeHandles.svelte';
   import { getEffectiveTheme, hexToRgba, getBlurClass } from '$lib/theme';
-  import { matchesShortcut, DEFAULT_SHORTCUTS } from '$lib/shortcuts';
+  import { matchesShortcut, DEFAULT_SHORTCUTS, DEFAULT_APP_SETTINGS } from '$lib/shortcuts';
 
   let appMode = $state<AppMode>('clipboard');
   let clips = $state<ClipItem[]>([]);
@@ -19,18 +19,7 @@
   let isSettingsOpen = $state(false);
   let isExportModalOpen = $state(false);
 
-  let settings = $state<AppSettings>({
-    global_shortcut: 'Alt+Shift+Q',
-    max_history: 100,
-    close_on_copy: true,
-    number_keys_copy: true,
-    play_sound: false,
-    run_at_startup: false,
-    max_vault_file_size_mb: 20,
-    window_width: 640,
-    window_height: 560,
-    ...DEFAULT_SHORTCUTS,
-  });
+  let settings = $state<AppSettings>({ ...DEFAULT_APP_SETTINGS });
 
   let currentTheme = $derived(getEffectiveTheme(settings));
 
@@ -77,7 +66,7 @@
     try {
       const res = await invoke<AppSettings>('get_settings');
       settings = {
-        ...DEFAULT_SHORTCUTS,
+        ...DEFAULT_APP_SETTINGS,
         ...res,
       };
     } catch (e) {

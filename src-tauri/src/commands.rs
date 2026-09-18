@@ -36,6 +36,14 @@ pub fn clear_clips(keep_pinned: bool, storage: State<'_, SharedStorage>) {
     storage.clear_all(keep_pinned);
 }
 
+fn maybe_hide_window_on_copy(app_handle: &AppHandle, storage: &SharedStorage) {
+    if storage.get_settings().close_on_copy {
+        if let Some(window) = app_handle.get_webview_window("main") {
+            let _ = window.hide();
+        }
+    }
+}
+
 #[tauri::command]
 pub fn copy_clip_to_clipboard(
     id: String,
@@ -80,12 +88,7 @@ pub fn copy_clip_to_clipboard(
     storage.bump_item(&id);
     let _ = app_handle.emit("clipboard-updated", ());
 
-    let settings = storage.get_settings();
-    if settings.close_on_copy {
-        if let Some(window) = app_handle.get_webview_window("main") {
-            let _ = window.hide();
-        }
-    }
+    maybe_hide_window_on_copy(&app_handle, &storage);
 
     Ok(())
 }
@@ -214,6 +217,7 @@ pub fn get_vault_items(vault: State<'_, SharedVault>) -> Result<Vec<VaultItem>, 
 }
 
 #[tauri::command]
+#[allow(clippy::too_many_arguments)]
 pub fn save_vault_item(
     id: Option<String>,
     title: String,
@@ -386,12 +390,7 @@ pub fn copy_vault_secret(
         .set_text(&secret)
         .map_err(|e| format!("Failed to copy secret to clipboard: {}", e))?;
 
-    let settings = storage.get_settings();
-    if settings.close_on_copy {
-        if let Some(window) = app_handle.get_webview_window("main") {
-            let _ = window.hide();
-        }
-    }
+    maybe_hide_window_on_copy(&app_handle, &storage);
 
     Ok(())
 }
@@ -561,12 +560,7 @@ pub fn copy_vault_file(
         }
     }
 
-    let settings = storage.get_settings();
-    if settings.close_on_copy {
-        if let Some(window) = app_handle.get_webview_window("main") {
-            let _ = window.hide();
-        }
-    }
+    maybe_hide_window_on_copy(&app_handle, &storage);
 
     Ok(file_name)
 }
