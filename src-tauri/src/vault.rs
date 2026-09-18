@@ -423,16 +423,14 @@ impl VaultManager {
         Ok(())
     }
 
-    pub fn unlock(&self, pin: &str) -> Result<Vec<VaultItem>, String> {
+    fn unlock_internal(&self, pin: Option<&str>) -> Result<Vec<VaultItem>, String> {
         if !self.is_initialized() {
             return Err("Vault has not been created yet.".into());
         }
 
-        let (key, salt, has_pin, data) = self.read_and_decrypt(Some(pin))?;
-
+        let (key, salt, has_pin, data) = self.read_and_decrypt(pin)?;
         let items = data.items.clone();
-        let mut session_guard = self.session.lock().unwrap();
-        *session_guard = Some(VaultSession {
+        *self.session.lock().unwrap() = Some(VaultSession {
             key,
             salt,
             has_pin,
@@ -442,23 +440,12 @@ impl VaultManager {
         Ok(items)
     }
 
+    pub fn unlock(&self, pin: &str) -> Result<Vec<VaultItem>, String> {
+        self.unlock_internal(Some(pin))
+    }
+
     pub fn auto_unlock(&self) -> Result<Vec<VaultItem>, String> {
-        if !self.is_initialized() {
-            return Err("Vault has not been created yet.".into());
-        }
-
-        let (key, salt, has_pin, data) = self.read_and_decrypt(None)?;
-
-        let items = data.items.clone();
-        let mut session_guard = self.session.lock().unwrap();
-        *session_guard = Some(VaultSession {
-            key,
-            salt,
-            has_pin,
-            data,
-        });
-
-        Ok(items)
+        self.unlock_internal(None)
     }
 
     fn rekey_file(&self, file_id: &str, old_key: &[u8; 32], new_key: &[u8; 32]) -> Result<(), String> {
@@ -735,11 +722,6 @@ impl VaultManager {
         self.read_encrypted_file_internal(&session.key, file_id)
     }
 
-    pub fn delete_encrypted_file(&self, file_id: &str) {
-        let path = self.vault_files_dir.join(format!("{}.enc", file_id));
-        let _ = fs::remove_file(path);
-    }
-
     pub fn get_vault_storage_dir(&self) -> PathBuf {
         self.vault_storage_dir.clone()
     }
@@ -981,11 +963,6 @@ impl VaultManager {
         }
 
         Err("File for this item not found or has been deleted from disk.".to_string())
-    }
-
-    pub fn get_file_info_and_bytes(&self, id: &str) -> Result<(String, Vec<u8>), String> {
-        let (file_name, _, bytes) = self.get_file_info_and_path(id)?;
-        Ok((file_name, bytes))
     }
 
     pub fn create_backup_bundle(&self) -> Result<String, String> {

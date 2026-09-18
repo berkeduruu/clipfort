@@ -174,11 +174,6 @@ pub fn hide_window(app_handle: AppHandle) {
 }
 
 #[tauri::command]
-pub fn show_window(app_handle: AppHandle) {
-    crate::toggle_main_window(&app_handle);
-}
-
-#[tauri::command]
 pub fn get_vault_status(vault: State<'_, SharedVault>) -> VaultStatus {
     vault.get_status()
 }
@@ -263,15 +258,6 @@ pub fn save_vault_item(
     )
 }
 
-#[tauri::command]
-pub fn get_vault_file_base64(
-    file_id: String,
-    vault: State<'_, SharedVault>,
-) -> Result<String, String> {
-    use base64::Engine;
-    let bytes = vault.read_encrypted_file(&file_id)?;
-    Ok(base64::engine::general_purpose::STANDARD.encode(&bytes))
-}
 
 #[tauri::command]
 pub fn get_vault_tabs(vault: State<'_, SharedVault>) -> Result<Vec<String>, String> {
@@ -293,12 +279,6 @@ pub fn toggle_vault_item_pin(id: String, vault: State<'_, SharedVault>) -> Resul
     vault.toggle_item_pin(&id)
 }
 
-#[tauri::command]
-pub fn set_window_size(width: f64, height: f64, app_handle: AppHandle) {
-    if let Some(window) = app_handle.get_webview_window("main") {
-        let _ = window.set_size(tauri::LogicalSize::new(width, height));
-    }
-}
 
 #[tauri::command]
 pub fn save_current_window_size(
@@ -416,10 +396,6 @@ pub fn copy_vault_secret(
     Ok(())
 }
 
-#[tauri::command]
-pub fn get_vault_path(vault: State<'_, SharedVault>) -> String {
-    vault.get_vault_path()
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PickedFileInfo {

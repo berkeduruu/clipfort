@@ -107,14 +107,6 @@
       scrollToSelected(0);
     } catch (e) {
       console.error('Failed to copy clip:', e);
-    } finally {
-      if (settings.close_on_copy) {
-        try {
-          await invoke('hide_window');
-        } catch (err) {
-          console.error('Failed to hide window:', err);
-        }
-      }
     }
   }
 

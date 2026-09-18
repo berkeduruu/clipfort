@@ -104,8 +104,6 @@ impl Default for AppSettings {
 }
 
 pub struct StorageManager {
-    #[allow(dead_code)]
-    data_dir: PathBuf,
     images_dir: PathBuf,
     history_file: PathBuf,
     settings_file: PathBuf,
@@ -142,9 +140,6 @@ impl StorageManager {
         let history_file = base_dir.join("history.json");
         let settings_file = base_dir.join("settings.json");
 
-        if !base_dir.exists() {
-            let _ = fs::create_dir_all(&base_dir);
-        }
         if !images_dir.exists() {
             let _ = fs::create_dir_all(&images_dir);
         }
@@ -216,7 +211,6 @@ impl StorageManager {
         }
 
         Self {
-            data_dir: base_dir,
             images_dir,
             history_file,
             settings_file,
@@ -226,13 +220,11 @@ impl StorageManager {
     }
 
     pub fn get_items(&self) -> Vec<ClipItem> {
-        let items = self.items.lock().unwrap();
-        items.clone()
+        self.items.lock().unwrap().clone()
     }
 
     pub fn get_settings(&self) -> AppSettings {
-        let settings = self.settings.lock().unwrap();
-        settings.clone()
+        self.settings.lock().unwrap().clone()
     }
 
     pub fn save_settings(&self, new_settings: AppSettings) -> Result<(), String> {
@@ -511,7 +503,6 @@ mod tests {
         let _ = fs::create_dir_all(&temp_dir);
 
         let storage = StorageManager {
-            data_dir: temp_dir.clone(),
             images_dir: temp_dir.join("images"),
             history_file: temp_dir.join("history.json"),
             settings_file: temp_dir.join("settings.json"),
@@ -568,7 +559,6 @@ mod tests {
         let _ = fs::create_dir_all(&temp_dir);
 
         let storage = StorageManager {
-            data_dir: temp_dir.clone(),
             images_dir: temp_dir.join("images"),
             history_file: temp_dir.join("history.json"),
             settings_file: temp_dir.join("settings.json"),
@@ -610,7 +600,6 @@ mod tests {
         let _ = fs::create_dir_all(&temp_dir);
 
         let storage = StorageManager {
-            data_dir: temp_dir.clone(),
             images_dir: temp_dir.join("images"),
             history_file: temp_dir.join("history.json"),
             settings_file: temp_dir.join("settings.json"),
@@ -675,7 +664,6 @@ mod tests {
         let _ = fs::create_dir_all(&temp_dir);
 
         let storage = StorageManager {
-            data_dir: temp_dir.clone(),
             images_dir: temp_dir.join("images"),
             history_file: temp_dir.join("history.json"),
             settings_file: temp_dir.join("settings.json"),
