@@ -25,7 +25,6 @@ ClipFort includes two main features:
 
 1. **Clipboard History:** Automatically records copied text, code snippets, and images. Lets you search, reorder, pin, and paste previous clips using keyboard shortcuts.
 2. **Encrypted Vault:** A local encrypted store for sensitive notes, passwords, and files, protected with AES-256-GCM.
-3. **Offline:** Works entirely locally. No network access, cloud sync, or telemetry.
 
 ---
 
@@ -216,4 +215,4 @@ To compile ClipFort yourself from source:
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
+MIT License.
